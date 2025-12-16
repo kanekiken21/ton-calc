@@ -1,0 +1,108 @@
+/* Основной фон приложения (Темный, как в TON) */
+body {
+  margin: 0;
+  display: flex;
+  place-items: center;
+  min-width: 320px;
+  min-height: 100vh;
+  background: #0f0f0f; /* Почти черный цвет */
+  background: radial-gradient(circle at 50% 10%, #1a202c, #000000);
+  color: white;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+#root {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+/* Эффект матового стекла (Glassmorphism) */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05); /* Полупрозрачный белый */
+  backdrop-filter: blur(16px); /* Размытие фона сзади */
+  -webkit-backdrop-filter: blur(16px); /* Для Safari */
+  border-radius: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.1); /* Тонкая рамка */
+  padding: 30px 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5); /* Тень */
+  text-align: center;
+}
+
+/* Стиль для заголовка */
+h1 {
+  font-size: 24px;
+  margin-bottom: 10px;
+  background: linear-gradient(90deg, #0088cc, #a64dff); /* Градиент TON -> NFT */
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+}
+
+/* Поля ввода */
+.input-group {
+  margin-bottom: 15px;
+  text-align: left;
+}
+
+label {
+  font-size: 12px;
+  color: #aaa;
+  margin-bottom: 5px;
+  display: block;
+  margin-left: 10px;
+}
+
+.input-field {
+  width: 100%;
+  padding: 12px 15px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: white;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box; /* Чтобы отступы не ломали ширину */
+  transition: 0.3s;
+}
+
+.input-field:focus {
+  border-color: #0088cc;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* Кнопка */
+.action-btn {
+  background: linear-gradient(90deg, #0088cc, #a64dff);
+  border: none;
+  padding: 12px 30px;
+  border-radius: 12px;
+  color: white;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 10px;
+  width: 100%;
+  transition: transform 0.1s;
+}
+
+.action-btn:active {
+  transform: scale(0.96); /* Эффект нажатия */
+}
+
+/* Результат */
+.result-box {
+  margin-top: 20px;
+  padding: 15px;
+  background: rgba(0, 255, 100, 0.1);
+  border: 1px solid rgba(0, 255, 100, 0.3);
+  border-radius: 12px;
+}
+
+.result-value {
+  font-size: 28px;
+  font-weight: bold;
+  color: #4ade80; /* Ярко-зеленый */
+}
