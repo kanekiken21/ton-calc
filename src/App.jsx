@@ -11,7 +11,7 @@ const t = {
 function App() {
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState('calc') 
-  const [lang, setLang] = useState('en')
+  const [lang, setLang] = useState('en') // Английский по умолчанию
   
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
@@ -29,27 +29,6 @@ function App() {
   const [op, setOp] = useState(null)
   const [memory, setMemory] = useState(null)
 
-  // --- ИНТЕГРАЦИЯ АНАЛИТИКИ (FIX) ---
-  useEffect(() => {
-    // Проверяем, не добавлен ли уже скрипт, чтобы не дублировать
-    if (document.getElementById('tg-analytics-script')) return;
-
-    const script = document.createElement('script');
-    script.id = 'tg-analytics-script';
-    script.src = 'https://tganalytics.xyz/index.js';
-    script.async = true;
-    
-    // Как только скрипт загрузился, запускаем init
-    script.onload = () => {
-      if (window.telegramAnalytics) {
-        window.telegramAnalytics.init('eyJhcHBfbmFtZSI6Im15X3Rvbl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9teXRvbmNhbGN1bGF0b3JfYm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdG9uLWNhbGMudmVyY2VsLmFwcC8ifQ==!b4veLOsGUosJ8kAG08IxPb4jbi/ItY7BgPTwtFACAas=');
-        console.log('TG Analytics Initialized Successfully');
-      }
-    };
-
-    document.body.appendChild(script);
-  }, []); // Пустой массив = сработает 1 раз при запуске приложения
-
   useEffect(() => {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
@@ -57,6 +36,7 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000');
       window.Telegram.WebApp.isVerticalSwipesEnabled = false; 
       
+      // Авто-определение языка
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') {
         setLang('ru');
@@ -64,6 +44,7 @@ function App() {
         setLang('ua');
       }
     }
+    
     setTimeout(() => setLoading(false), 2500);
     
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
