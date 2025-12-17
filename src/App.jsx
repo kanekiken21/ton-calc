@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
+// СЛОВАРЬ (Мультиязычность)
 const t = {
   ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек' },
   en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet' },
@@ -11,7 +12,10 @@ const t = {
 function App() {
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState('calc') 
-  const [lang, setLang] = useState('ru')
+  
+  // ВАЖНО: Английский по умолчанию для модерации
+  const [lang, setLang] = useState('en')
+  
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
   
@@ -33,18 +37,32 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
+      // Блокируем вертикальный свайп (для стабильности)
       window.Telegram.WebApp.isVerticalSwipesEnabled = false; 
       
+      // ЛОГИКА ЯЗЫКА (Compliance)
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
-      if (userLang === 'uk') setLang('ua');
-      else if (userLang === 'en') setLang('en');
+      
+      // Включаем RU только для русских и белорусов
+      if (userLang === 'ru' || userLang === 'be') {
+        setLang('ru');
+      } 
+      // Включаем UA для украинцев
+      else if (userLang === 'uk') {
+        setLang('ua');
+      }
+      // Для всех остальных (en, de, fr, es...) останется 'en' (дефолтный)
     }
-    setTimeout(() => setLoading(false), 2000);
+    
+    // Имитация загрузки + получение курса
+    setTimeout(() => setLoading(false), 2500);
+    
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.20'));
   }, [])
 
+  // --- НАВИГАЦИЯ ---
   const safeOpenLink = (url) => {
     const tg = window.Telegram?.WebApp;
     if (tg && url.startsWith('https://t.me/')) {
@@ -56,6 +74,7 @@ function App() {
     }
   };
 
+  // --- ДОНАТ ---
   const handleDonate = async () => {
     const amount = donateAmount && parseFloat(donateAmount) > 0 ? donateAmount : '0.1';
     setIsDonating(true);
@@ -65,20 +84,27 @@ function App() {
           headers: {'Content-Type': 'application/json'},
           body: JSON.stringify({ amount })
       });
+      
+      // Проверка на HTML ошибку (если API недоступно)
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("Server Error (Check /api folder)");
+      }
+
       const data = await res.json();
       if (data.url) {
         safeOpenLink(data.url);
       } else {
-        alert('Ошибка CryptoBot: ' + (data.error || 'Unknown'));
+        alert('CryptoBot Error: ' + (data.error || 'Unknown'));
       }
     } catch (e) {
-      alert('Ошибка: ' + e.message);
+      alert('Error: ' + e.message);
     } finally {
       setIsDonating(false);
     }
   }
 
-  // CALC LOGIC
+  // --- КАЛЬКУЛЯТОР ---
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -97,7 +123,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP LOGIC
+  // --- FLIP ---
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -116,21 +142,43 @@ function App() {
 
       {loading && (
         <div className="splash">
+           {/* НОВОГОДНИЙ ЛОГОТИП */}
            <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
-            <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
             <defs>
-              <linearGradient id="paint0_linear" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+              <filter id="frostGlow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+                <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0   0 0 0 0 0.7   0 0 0 0 1  0 0 0 1 0" result="frostBlue"/>
+                <feMerge>
+                  <feMergeNode in="frostBlue" />
+                  <feMergeNode in="SourceGraphic" />
+                </feMerge>
+              </filter>
+              <linearGradient id="paint0_linear_ny" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#007AFF"/>
-                <stop offset="1" stopColor="#BD00FF"/>
+                <stop offset="1" stopColor="#80FFFF"/>
               </linearGradient>
-              <linearGradient id="paint1_linear" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#00F2FF"/>
+              <linearGradient id="paint1_linear_ny" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#80FFFF"/>
                 <stop offset="1" stopColor="#007AFF"/>
               </linearGradient>
             </defs>
+
+            <g filter="url(#frostGlow)">
+              <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear_ny)"/>
+              <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear_ny)"/>
+              {/* Снег */}
+              <circle cx="50" cy="30" r="3" fill="white" opacity="0.8" />
+              <circle cx="150" cy="60" r="2.5" fill="white" opacity="0.7" />
+              <circle cx="100" cy="100" r="4" fill="white" opacity="0.9" />
+              <circle cx="30" cy="150" r="2" fill="white" opacity="0.6" />
+              <circle cx="170" cy="130" r="3.5" fill="white" opacity="0.8" />
+              <circle cx="80" cy="180" r="2" fill="white" opacity="0.7" />
+              <circle cx="120" cy="10" r="2.5" fill="white" opacity="0.8" />
+              <circle cx="10" cy="80" r="3" fill="white" opacity="0.6" />
+              <circle cx="190" cy="90" r="2" fill="white" opacity="0.7" />
+            </g>
           </svg>
-          <div className="splash-text">my TON Calc</div>
+          <div className="splash-text">my TON Calculator</div>
         </div>
       )}
 
@@ -155,13 +203,13 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
-          {/* SETTINGS + WALLET CONNECT */}
+          {/* SETTINGS + WALLET */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
                   <h3 style={{marginBottom:'15px', color:'white', textAlign:'center'}}>{t[lang].sets}</h3>
                   
-                  {/* TON CONNECT BUTTON (Центральное место) */}
+                  {/* КНОПКА КОШЕЛЬКА */}
                   <div style={{width:'100%', display:'flex', justifyContent:'center', marginBottom:'15px'}}>
                     <TonConnectButton />
                   </div>
