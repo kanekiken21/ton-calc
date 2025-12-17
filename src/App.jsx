@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// СЛОВАРЬ
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Profit', sets: 'Settings', close: 'Close' },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)' }
 }
 
 function App() {
@@ -17,6 +16,8 @@ function App() {
   // Flip States
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
+  const [feeType, setFeeType] = useState('std') // 'std' | 'custom'
+  const [customFee, setCustomFee] = useState('')
 
   // Calc States
   const [display, setDisplay] = useState('0')
@@ -29,10 +30,9 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
-      // Авто-определение языка
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      else if (userLang === 'en') setLang('en');
+      if (userLang === 'en') setLang('en');
     }
     
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -40,7 +40,7 @@ function App() {
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // CALC LOGIC
+  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -59,24 +59,27 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP LOGIC (10% Fee default)
+  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
-    return (s * 0.90 - b).toFixed(2);
+    
+    // std = 10% (5% getgems + 5% royalty), custom = ввод
+    const fee = feeType === 'std' ? 10 : (parseFloat(customFee) || 0);
+    return (s * (1 - fee/100) - b).toFixed(2);
   }
   const profit = getProfit();
 
   return (
     <>
-      <div className="bg-glow"></div>
+      <div className="bg-fx"></div>
 
       <div className="island">
         
         {/* HEADER */}
         <div className="header">
           <div className="title">TON Tools 💎 ${tonPrice || '...'}</div>
-          <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
+          <div className="settings-icon" onClick={()=>setShowSettings(true)}>⚙️</div>
         </div>
 
         {/* TABS */}
@@ -85,7 +88,7 @@ function App() {
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
         </div>
 
-        {/* SETTINGS MODAL */}
+        {/* SETTINGS */}
         {showSettings && (
           <div className="modal-overlay">
             <h3 style={{marginBottom:'20px'}}>{t[lang].sets}</h3>
@@ -98,9 +101,9 @@ function App() {
 
         {/* CALC MODE */}
         {mode === 'calc' && (
-          <div style={{width:'100%'}}>
-            <div className="calc-screen">{display}</div>
-            <div className="calc-grid">
+          <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
+            <div className="screen">{display}</div>
+            <div className="keypad">
               <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
@@ -130,18 +133,28 @@ function App() {
 
         {/* FLIP MODE */}
         {mode === 'flip' && (
-          <div style={{width:'100%'}}>
+          <div className="flip-cont">
             <div className="label">{t[lang].buy}</div>
             <input type="number" className="input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
             
             <div className="label">{t[lang].sell}</div>
             <input type="number" className="input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
 
+            <div className="label">{t[lang].fee}</div>
+            <div className="fees">
+              <button className={`fee-chip ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
+              <button className={`fee-chip ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
+            </div>
+
+            {feeType === 'custom' && (
+               <input type="number" className="input" placeholder="5" value={customFee} onChange={e=>setCustomFee(e.target.value)} style={{marginTop:'-10px'}}/>
+            )}
+
             {profit !== null && (
               <div className="result">
-                <div style={{fontSize:'12px', color:'#aaa'}}>{t[lang].profit}</div>
+                <div style={{fontSize:'10px', color:'#aaa'}}>{t[lang].profit}</div>
                 <div className="res-val">{parseFloat(profit)>0?'+':''}{profit} TON</div>
-                {tonPrice && <div style={{fontSize:'12px', color:'#888', marginTop:'5px'}}>≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
+                {tonPrice && <div className="res-sub">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
               </div>
             )}
           </div>

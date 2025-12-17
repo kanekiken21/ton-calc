@@ -1,95 +1,116 @@
 :root {
   --bg: #000000;
-  --glass: rgba(20, 20, 20, 0.8);
+  --glass: rgba(25, 25, 30, 0.95);
   --border: rgba(255, 255, 255, 0.1);
-  --primary: #007aff;
-  --primary-glow: 0 0 20px rgba(0, 122, 255, 0.5);
+  --neon: #007aff;
+  --neon-glow: 0 0 20px rgba(0, 122, 255, 0.5);
   --text: #ffffff;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; user-select: none; outline: none; }
+* { 
+  box-sizing: border-box; margin: 0; padding: 0; 
+  -webkit-tap-highlight-color: transparent; user-select: none; outline: none; 
+}
 
 body {
-  margin: 0; padding: 0; width: 100vw; height: 100vh;
+  margin: 0; width: 100vw; height: 100vh;
   background: var(--bg); color: var(--text);
   font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
   overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
 
-/* ФОН */
-.bg-glow {
-  position: absolute; width: 200%; height: 200%;
+/* ФОН (Дышащий) */
+.bg-fx {
+  position: absolute; width: 200%; height: 200%; top: -50%; left: -50%;
   background: radial-gradient(circle at 50% 50%, rgba(0, 100, 255, 0.15), transparent 60%);
-  animation: spin 15s infinite linear; z-index: -1;
+  animation: pulse 8s infinite alternate; z-index: -1;
 }
-@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulse { 0% { opacity: 0.5; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1); } }
 
 #root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* --- ГЛАВНЫЙ КОНТЕЙНЕР (ОСТРОВ 320px) --- */
+/* --- ГЛАВНЫЙ ОСТРОВ (320px FIXED) --- */
 .island {
-  width: 320px; /* СТРОГО 320 пикселей */
+  width: 320px; /* СТРОГАЯ ШИРИНА */
   background: var(--glass);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
   border: 1px solid var(--border);
-  border-radius: 32px;
+  border-radius: 36px;
   padding: 20px;
-  box-shadow: 0 40px 80px rgba(0,0,0,0.8);
-  display: flex; flex-direction: column;
+  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
+  display: flex; flex-direction: column; align-items: center;
   position: relative;
-  max-height: 90vh; /* Чтобы на маленьких экранах не обрезало */
+  overflow: hidden; /* Обрезает все, что торчит */
 }
 
 /* HEADER */
 .header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 15px; padding: 0 5px;
+  width: 100%; display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 20px; padding: 0 5px;
 }
-.title { font-weight: 800; font-size: 16px; }
-.settings-btn { font-size: 18px; cursor: pointer; opacity: 0.8; }
+.title { font-weight: 800; font-size: 16px; letter-spacing: -0.5px; }
+.settings-icon { font-size: 20px; opacity: 0.8; cursor: pointer; transition: 0.2s; }
+.settings-icon:active { transform: rotate(90deg); }
 
 /* TABS */
 .tabs {
-  background: rgba(255,255,255,0.05); padding: 3px; border-radius: 12px;
-  display: flex; margin-bottom: 15px;
+  background: rgba(255,255,255,0.08); padding: 4px; border-radius: 14px;
+  display: flex; width: 100%; margin-bottom: 20px;
 }
 .tab {
   flex: 1; padding: 8px; border: none; background: none;
   color: #888; font-weight: 700; font-size: 12px; border-radius: 10px;
   transition: 0.2s; cursor: pointer; text-transform: uppercase;
 }
-.tab.active { background: rgba(255,255,255,0.15); color: white; }
-
-/* --- CALCULATOR GRID (НЕЛОМАЕМАЯ) --- */
-.calc-screen {
-  text-align: right; font-size: 50px; font-weight: 200; color: white;
-  margin-bottom: 15px; height: 60px; overflow: hidden; white-space: nowrap;
-  padding-right: 5px; letter-spacing: -1px;
+.tab.active {
+  background: rgba(255,255,255,0.15); color: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.3); text-shadow: 0 0 5px rgba(255,255,255,0.5);
 }
 
-.calc-grid {
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); /* 4 РАВНЫЕ КОЛОНКИ */
-  gap: 10px; /* Отступы между кнопками */
+/* --- CALCULATOR (FIXED GRID) --- */
+.screen {
+  width: 100%; text-align: right; font-size: 55px; font-weight: 200;
+  margin-bottom: 20px; height: 65px; overflow: hidden; white-space: nowrap;
+  padding-right: 5px; letter-spacing: -2px;
+  text-shadow: 0 0 15px rgba(255,255,255,0.2);
+}
+
+.keypad {
+  display: grid;
+  /* 4 кнопки по 60px. В сумме 240px + отступы. Влезает в 320px идеально */
+  grid-template-columns: repeat(4, 60px); 
+  gap: 12px;
+  justify-content: center;
   width: 100%;
 }
 
 .btn {
-  width: 100%; aspect-ratio: 1; /* Квадрат -> Круг */
+  width: 60px; height: 60px; /* Фиксированный размер */
   border-radius: 50%; border: none;
-  font-size: 22px; color: white; cursor: pointer;
+  font-size: 24px; color: white; cursor: pointer;
   background: rgba(255, 255, 255, 0.08);
   display: flex; justify-content: center; align-items: center;
-  transition: transform 0.1s;
+  transition: transform 0.1s cubic-bezier(0.3, 0.7, 0.4, 1.5); /* Пружина */
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
 }
-.btn:active { transform: scale(0.9); background: rgba(255,255,255,0.2); }
+
+/* Эффект нажатия */
+.btn:active { transform: scale(0.85); background: rgba(255,255,255,0.2); }
 
 .btn.blue { color: #5ac8fa; background: rgba(0, 122, 255, 0.15); }
-.btn.neon { background: var(--primary); box-shadow: var(--primary-glow); }
-.btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 25px; }
+.btn.blue:active { background: rgba(0, 122, 255, 0.3); box-shadow: var(--neon-glow); }
 
-/* --- FLIP --- */
+.btn.neon { background: var(--neon); box-shadow: var(--neon-glow); }
+.btn.neon:active { transform: scale(0.9); box-shadow: none; }
+
+.btn.zero { 
+  grid-column: span 2; 
+  width: 132px; /* 60+60+12 */
+  border-radius: 40px; justify-content: flex-start; padding-left: 24px; 
+}
+
+/* --- FLIP & FEES --- */
+.flip-cont { width: 100%; padding: 0 5px; animation: fadeIn 0.3s; }
 .label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: 700; margin-bottom: 5px; margin-left: 5px; }
 .input {
   width: 100%; padding: 14px; background: rgba(0,0,0,0.3);
@@ -97,24 +118,39 @@ body {
   color: white; font-size: 20px; outline: none; margin-bottom: 15px;
   font-weight: 600; text-align: center;
 }
-.input:focus { border-color: var(--primary); box-shadow: var(--primary-glow); }
+.input:focus { border-color: var(--neon); box-shadow: var(--neon-glow); }
+
+.fees { display: flex; gap: 10px; margin-bottom: 15px; }
+.fee-chip {
+  flex: 1; padding: 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid transparent; border-radius: 12px;
+  color: #666; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
+  transition: 0.2s;
+}
+.fee-chip.active {
+  border-color: var(--neon); color: white; background: rgba(0, 122, 255, 0.15);
+  box-shadow: 0 0 10px rgba(0, 122, 255, 0.2);
+}
 
 .result {
   margin-top: 10px; padding: 20px; text-align: center;
-  background: rgba(50, 255, 100, 0.05); border: 1px solid rgba(50, 255, 100, 0.2);
-  border-radius: 20px;
+  background: rgba(50, 255, 100, 0.05);
+  border: 1px solid rgba(50, 255, 100, 0.2); border-radius: 20px;
 }
-.res-val { font-size: 32px; font-weight: 800; color: #32d74b; }
+.res-val { font-size: 32px; font-weight: 800; color: #32d74b; text-shadow: 0 0 15px rgba(50,215,75,0.3); }
+.res-sub { font-size: 12px; color: #888; margin-top: 5px; }
 
 /* --- SETTINGS MODAL --- */
 .modal-overlay {
-  position: absolute; inset: 0; background: rgba(0,0,0,0.9); z-index: 100;
+  position: absolute; inset: 0; background: rgba(0,0,0,0.95); z-index: 100;
   display: flex; flex-direction: column; justify-content: center; align-items: center;
-  border-radius: 32px;
+  backdrop-filter: blur(10px); border-radius: 32px;
 }
 .lang-btn {
-  width: 80%; padding: 15px; margin: 5px; border-radius: 15px;
-  border: 1px solid var(--border); background: rgba(255,255,255,0.05);
+  width: 70%; padding: 15px; margin: 8px; border-radius: 15px;
+  border: 1px solid var(--border); background: rgba(255,255,255,0.08);
   color: white; font-weight: 600; cursor: pointer;
 }
-.lang-btn.active { border-color: var(--primary); background: rgba(0, 122, 255, 0.1); }
+.lang-btn.active { border-color: var(--neon); background: rgba(0, 122, 255, 0.15); }
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
