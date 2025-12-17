@@ -1,10 +1,37 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+// ВСТРОЕННАЯ БАЗА ПОПУЛЯРНЫХ ГИФТОВ (Имитация сервера)
+const POPULAR_GIFTS = {
+  'pepe': { 
+    name: 'Plush Pepe', 
+    img: 'https://cache.tonapi.io/imgproxy/b2c5w1Q7Y_14K0-44e2-6d24.png', 
+    floor: '150 TON', 
+    link: 'https://getgems.io/collection/EQDnwd-3r6p_jJaO7beD_S_mS2AH65MZ7b1h1N3U7W_4r6p?filter=%7B%22attributes%22%3A%5B%7B%22trait_type%22%3A%22Name%22%2C%22value%22%3A%22Plush%20Pepe%22%7D%5D%7D'
+  },
+  'star': { 
+    name: 'Red Star', 
+    img: 'https://nft.ton.diamonds/nft/0/4/12/412.png', // Пример картинки звезды
+    floor: '450 TON', 
+    link: 'https://getgems.io/search?q=Red%20Star'
+  },
+  'duck': { 
+    name: 'Rubber Duck', 
+    img: 'https://cache.tonapi.io/imgproxy/XX_duck_image.png', // Заглушка, если нет
+    floor: '50 TON', 
+    link: 'https://getgems.io/search?q=Duck'
+  },
+  'cake': { 
+    name: 'Delicious Cake', 
+    img: 'https://em-content.zobj.net/source/apple/391/birthday-cake_1f382.png',
+    floor: '15 TON', 
+    link: 'https://getgems.io/search?q=Cake'
+  }
+};
+
 function App() {
-  // --- STATES ---
-  const [loadingApp, setLoadingApp] = useState(true) // Сплэш скрин
-  const [showOnboarding, setShowOnboarding] = useState(false) // Обучение
+  const [loadingApp, setLoadingApp] = useState(true)
+  const [showSettings, setShowSettings] = useState(false)
   
   const [activeTab, setActiveTab] = useState('flip') 
   const [tonPrice, setTonPrice] = useState(null)
@@ -18,6 +45,7 @@ function App() {
 
   // Gifts States
   const [giftQuery, setGiftQuery] = useState('')
+  const [giftResult, setGiftResult] = useState(null)
   
   // Stars States
   const [starsAmount, setStarsAmount] = useState('')
@@ -29,38 +57,23 @@ function App() {
   const [firstNum, setFirstNum] = useState(null)
   const [operator, setOperator] = useState(null)
 
-  // --- INIT ---
   useEffect(() => {
-    // 1. Настройка Телеграма
+    // 1. Телеграм
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.setHeaderColor('#000000'); 
       window.Telegram.WebApp.expand();
     }
-
-    // 2. Проверка: первый ли раз юзер тут?
-    const visited = localStorage.getItem('visited_v1');
-    if (!visited) {
-      setShowOnboarding(true);
-      localStorage.setItem('visited_v1', 'true');
-    }
-
-    // 3. Убираем сплэш через 2.5 сек
-    setTimeout(() => setLoadingApp(false), 2500);
-
+    // 2. Сплэш скрин (3 сек)
+    setTimeout(() => setLoadingApp(false), 3000);
     fetchTonPrice();
   }, [])
 
-  // --- API ---
   const fetchTonPrice = () => {
     setIsSpinning(true);
-    // Берем курс с Binance (Самый надежный)
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(res => res.json())
-      .then(data => {
-         if(data.price) setTonPrice(parseFloat(data.price).toFixed(2));
-      })
-      .catch(err => console.error("API Error", err))
+      .then(data => { if(data.price) setTonPrice(parseFloat(data.price).toFixed(2)); })
       .finally(() => setTimeout(() => setIsSpinning(false), 1000));
   }
 
@@ -68,14 +81,9 @@ function App() {
   const calculateFlip = () => {
     const buy = buyPrice ? parseFloat(buyPrice) : 0;
     const sell = sellPrice ? parseFloat(sellPrice) : 0;
-    const roy = royalty ? parseFloat(royalty) : 5; // По умолчанию 5%
-    
+    const roy = royalty ? parseFloat(royalty) : 5;
     if (!buy && !sell) return;
-
-    // Комиссия Getgems (5%) + Роялти
-    const totalFeePercent = 5 + roy;
-    const totalFee = sell * (totalFeePercent / 100);
-    
+    const totalFee = sell * ((5 + roy) / 100);
     setFlipProfit((sell - totalFee - buy).toFixed(2));
   }
 
@@ -84,14 +92,27 @@ function App() {
     setStarsProfit((amount * 0.0135).toFixed(2));
   }
 
+  // --- УМНЫЙ ПОИСК ГИФТОВ ---
   const handleGiftSearch = () => {
     if (!giftQuery) return;
-    // Генерируем ссылку на ПОИСК Getgems
-    const query = encodeURIComponent(giftQuery);
-    window.open(`https://getgems.io/search?q=${query}`, '_blank');
+    const q = giftQuery.toLowerCase().trim();
+    
+    // Проверяем нашу "Встроенную базу"
+    if (POPULAR_GIFTS[q]) {
+      setGiftResult(POPULAR_GIFTS[q]);
+      return;
+    }
+    
+    // Если не нашли в базе, показываем заглушку
+    setGiftResult({
+      name: "Поиск в Getgems...",
+      desc: "Нажми кнопку ниже, чтобы открыть маркет",
+      img: null,
+      link: `https://getgems.io/search?q=${giftQuery}`
+    });
   }
 
-  // --- CALC LOGIC (FIXED) ---
+  // --- CALC LOGIC ---
   const inputDigit = (digit) => {
     if (waitingForSecond) {
       setCalcDisplay(String(digit));
@@ -100,31 +121,22 @@ function App() {
       setCalcDisplay(calcDisplay === '0' ? String(digit) : calcDisplay + String(digit));
     }
   }
-  
   const performOp = (nextOperator) => {
     const inputValue = parseFloat(calcDisplay);
-    if (firstNum === null) {
-      setFirstNum(inputValue);
-    } else if (operator) {
+    if (firstNum === null) { setFirstNum(inputValue); } 
+    else if (operator) {
       const result = calculate(firstNum, inputValue, operator);
       setCalcDisplay(String(result).slice(0, 10));
       setFirstNum(result);
     }
-    setWaitingForSecond(true);
-    setOperator(nextOperator);
+    setWaitingForSecond(true); setOperator(nextOperator);
   }
-
   const calculate = (first, second, op) => {
-    if (op === '+') return first + second;
-    if (op === '-') return first - second;
-    if (op === '*') return first * second;
-    if (op === '/') return first / second;
+    if (op === '+') return first + second; if (op === '-') return first - second;
+    if (op === '*') return first * second; if (op === '/') return first / second;
     return second;
   }
-
-  const resetCalc = () => {
-    setCalcDisplay('0'); setFirstNum(null); setOperator(null); setWaitingForSecond(false);
-  }
+  const resetCalc = () => { setCalcDisplay('0'); setFirstNum(null); setOperator(null); setWaitingForSecond(false); }
 
   return (
     <>
@@ -132,23 +144,21 @@ function App() {
       {loadingApp && (
         <div className="splash-screen">
           <div className="splash-logo">💎</div>
-          <div className="splash-text">TON TOOLS</div>
+          <div className="splash-text">my TON Calculator</div>
         </div>
       )}
 
-      {/* 2. ONBOARDING (Только первый раз) */}
-      {!loadingApp && showOnboarding && (
-        <div className="onboarding-overlay">
-          <div className="onboarding-card fade-in">
-            <div className="onboarding-icon">👋</div>
-            <div className="onboarding-title">Привет!</div>
-            <div className="onboarding-desc">
-              Это твой карманный помощник для TON.<br/><br/>
-              1. Считай прибыль с NFT<br/>
-              2. Ищи коллекции<br/>
-              3. Конвертируй звезды
+      {/* 2. SETTINGS MODAL */}
+      {showSettings && (
+        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+          <div className="modal-content" onClick={e => e.stopPropagation()}>
+            <h3 style={{marginBottom:'20px'}}>Настройки</h3>
+            <div className="menu-item" onClick={() => alert('Скоро: TON Connect!')}>
+              💎 Connect Wallet (Beta)
             </div>
-            <button className="action-btn" onClick={() => setShowOnboarding(false)}>Погнали!</button>
+            <div className="menu-item">📄 Privacy Policy</div>
+            <div className="menu-item">💬 Support</div>
+            <button className="action-btn" style={{background:'#333', marginTop:'20px'}} onClick={() => setShowSettings(false)}>Закрыть</button>
           </div>
         </div>
       )}
@@ -158,12 +168,13 @@ function App() {
         <div className="glass-card">
           
           {/* HEADER */}
-          {activeTab !== 'system' && (
+          <div className="app-header">
              <div className="price-badge fade-in">
                <span>💎 1 TON ≈ {tonPrice ? `$${tonPrice}` : '...'}</span>
                <button onClick={fetchTonPrice} className={`refresh-btn ${isSpinning ? 'spinning' : ''}`}>🔄</button>
              </div>
-          )}
+             <button className="settings-btn" onClick={() => setShowSettings(true)}>⚙️</button>
+          </div>
 
           {/* TABS */}
           <div className="tabs">
@@ -181,9 +192,9 @@ function App() {
                    <label>Купил (TON)</label>
                    <input type="number" className="input-field" placeholder="0" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} />
                  </div>
-                 <div className="input-group" style={{width:'35%'}}>
-                   <label onClick={() => alert('Комиссия автора коллекции (стандарт 5%)')}>Royalty (?)</label>
-                   <input type="number" className="input-field" placeholder="5" value={royalty} onChange={e => setRoyalty(e.target.value)} style={{borderColor:'#5ac8fa'}}/>
+                 <div className="input-group" style={{width:'40%'}}>
+                   <label onClick={() => alert('Комиссия автора (роялти). Стандарт 5%')}>Royalty <span className="info-icon">ⓘ</span></label>
+                   <input type="number" className="input-field" placeholder="5" value={royalty} onChange={e => setRoyalty(e.target.value)} />
                  </div>
               </div>
               <div className="input-group">
@@ -194,25 +205,36 @@ function App() {
               
               {flipProfit && (
                 <div className="result-box">
-                  <div style={{color:'#aaa', fontSize:'12px'}}>Чистая прибыль</div>
+                  <div style={{color:'#aaa', fontSize:'13px'}}>Чистая прибыль</div>
                   <div className="result-value" style={{color: parseFloat(flipProfit)>=0 ? '#32d74b':'#ff453a'}}>
                     {parseFloat(flipProfit) > 0 ? '+' : ''}{flipProfit} TON
                   </div>
-                  {tonPrice && <div style={{color:'#888', marginTop:'5px'}}>≈ ${(parseFloat(flipProfit)*tonPrice).toFixed(2)}</div>}
+                  {tonPrice && <div style={{color:'#888', marginTop:'5px', fontSize:'14px'}}>≈ ${(parseFloat(flipProfit)*tonPrice).toFixed(2)}</div>}
                 </div>
               )}
             </div>
           )}
 
-          {/* GIFTS TAB */}
+          {/* GIFTS TAB (С БАЗОЙ) */}
           {activeTab === 'gifts' && (
             <div className="fade-in">
               <div className="input-group">
-                <label>Название (Pepe, Star...)</label>
-                <input type="text" className="input-field" placeholder="Введите название..." value={giftQuery} onChange={e => setGiftQuery(e.target.value)} />
+                <label>Поиск (Pepe, Star, Cake...)</label>
+                <input type="text" className="input-field" placeholder="Название..." value={giftQuery} onChange={e => setGiftQuery(e.target.value)} />
               </div>
-              <button className="action-btn" onClick={handleGiftSearch}>Найти на Getgems ↗</button>
-              <p style={{fontSize:'13px', color:'#666', marginTop:'15px'}}>Откроет официальный поиск Getgems</p>
+              <button className="action-btn" onClick={handleGiftSearch}>Найти</button>
+
+              {giftResult && (
+                <div className="gift-card fade-in">
+                  {giftResult.img && <img src={giftResult.img} alt="gift" className="gift-img"/>}
+                  <div style={{fontSize:'20px', fontWeight:'bold'}}>{giftResult.name}</div>
+                  {giftResult.floor && <div style={{color:'#5ac8fa', marginTop:'5px'}}>Floor: {giftResult.floor}</div>}
+                  <div style={{color:'#888', fontSize:'13px', margin:'10px 0'}}>{giftResult.desc}</div>
+                  <a href={giftResult.link} target="_blank" rel="noreferrer" style={{color:'#007aff', textDecoration:'none', fontWeight:'600'}}>
+                    Смотреть на Getgems ↗
+                  </a>
+                </div>
+              )}
             </div>
           )}
 
@@ -223,16 +245,17 @@ function App() {
                 <label>Звезд ⭐️</label>
                 <input type="number" className="input-field" placeholder="0" value={starsAmount} onChange={e => setStarsAmount(e.target.value)} />
               </div>
-              <button className="action-btn" onClick={calculateStars}>В Доллары</button>
+              <button className="action-btn" onClick={calculateStars}>Конвертировать</button>
               {starsProfit && (
-                <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.1)'}}>
-                   <div className="result-value" style={{color:'#ffd700'}}>${starsProfit}</div>
+                <div className="result-box" style={{background:'rgba(255, 200, 0, 0.1)'}}>
+                   <div style={{color:'#aaa', fontSize:'13px'}}>В долларах</div>
+                   <div className="result-value" style={{color:'#ffcc00'}}>${starsProfit}</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* CALC TAB */}
+          {/* CALC TAB (IOS) */}
           {activeTab === 'system' && (
             <div className="fade-in">
               <div className="calc-screen">{calcDisplay}</div>
@@ -240,26 +263,25 @@ function App() {
                 <button className="calc-btn blue" onClick={resetCalc}><span>C</span></button>
                 <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)*-1))}><span>+/-</span></button>
                 <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)/100))}><span>%</span></button>
-                <button className="calc-btn blue" onClick={() => performOp('/')}><span>÷</span></button>
+                <button className="calc-btn primary" onClick={() => performOp('/')}><span>÷</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(7)}><span>7</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(8)}><span>8</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(9)}><span>9</span></button>
-                <button className="calc-btn blue" onClick={() => performOp('*')}><span>×</span></button>
+                <button className="calc-btn primary" onClick={() => performOp('*')}><span>×</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(4)}><span>4</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(5)}><span>5</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(6)}><span>6</span></button>
-                <button className="calc-btn blue" onClick={() => performOp('-')}><span>−</span></button>
+                <button className="calc-btn primary" onClick={() => performOp('-')}><span>−</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(1)}><span>1</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(2)}><span>2</span></button>
                 <button className="calc-btn" onClick={() => inputDigit(3)}><span>3</span></button>
-                <button className="calc-btn blue" onClick={() => performOp('+')}><span>+</span></button>
+                <button className="calc-btn primary" onClick={() => performOp('+')}><span>+</span></button>
                 <button className="calc-btn zero" onClick={() => inputDigit(0)}><span>0</span></button>
                 <button className="calc-btn" onClick={() => { if(!calcDisplay.includes('.')) setCalcDisplay(calcDisplay+'.') }}><span>.</span></button>
                 <button className="calc-btn primary" onClick={() => performOp('=')}><span>=</span></button>
               </div>
             </div>
           )}
-
         </div>
       </div>
     </>
