@@ -2,226 +2,191 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 function App() {
-  // --- STATES ---
-  const [loading, setLoading] = useState(true) // Splash
-  const [showGuide, setShowGuide] = useState(false) // Onboarding
-  const [guideStep, setGuideStep] = useState(1)
-  
-  const [mode, setMode] = useState('calc') // 'calc' | 'flip'
-  const [tonPrice, setTonPrice] = useState(6.0) // Дефолт, если нет инета
+  // --- STATE ---
+  const [mode, setMode] = useState('calc') // 'calc' or 'flip'
+  const [showGuide, setShowGuide] = useState(false)
+  const [tonPrice, setTonPrice] = useState(null)
 
-  // Calc States
+  // Calc Logic State
   const [display, setDisplay] = useState('0')
-  const [waitingForOperand, setWaiting] = useState(false)
-  const [pendingOp, setPendingOp] = useState(null)
-  const [savedVal, setSavedVal] = useState(null)
+  const [waiting, setWaiting] = useState(false) // Ждем ли вторую цифру
+  const [op, setOp] = useState(null)
+  const [memory, setMemory] = useState(null)
 
-  // Flip States
+  // Flip Logic State
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
-  const [profit, setProfit] = useState(null)
 
   // --- INIT ---
   useEffect(() => {
-    // 1. Telegram Setup
+    // Настройка Telegram WebApp
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
     }
 
-    // 2. Check First Visit
-    const visited = localStorage.getItem('ton_calc_v3');
+    // Проверка первого входа (Гайд)
+    const visited = localStorage.getItem('ton_calc_visited');
     if (!visited) setShowGuide(true);
 
-    // 3. Splash Timer
-    setTimeout(() => setLoading(false), 2500);
-
-    // 4. Fetch Price
-    fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
-      .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price)))
-      .catch(e => console.log('Price error', e));
+    // Загрузка курса
+    fetchPrice();
   }, [])
 
-  // --- LOGIC: FLIP ---
-  const calculateFlip = () => {
-    const b = parseFloat(buy);
-    const s = parseFloat(sell);
-    if (!b || !s) { setProfit(null); return; }
-
-    // Формула: (Продажа - 5%) - Покупка
-    const netSell = s * 0.95; 
-    const p = netSell - b;
-    setProfit(p);
+  const fetchPrice = () => {
+    fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
+      .then(r => r.json())
+      .then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
+      .catch(() => setTonPrice('6.25')); // Если инет упал
   }
 
-  // Auto-calculate on input
-  useEffect(() => { calculateFlip() }, [buy, sell])
-
-  // --- LOGIC: CALC ---
-  const inputDigit = (digit) => {
-    if (waitingForOperand) {
-      setDisplay(String(digit));
+  // --- CALC FUNCTIONS ---
+  const num = (n) => {
+    if (waiting) {
+      setDisplay(String(n));
       setWaiting(false);
     } else {
-      setDisplay(display === '0' ? String(digit) : display + String(digit));
+      setDisplay(display === '0' ? String(n) : display + String(n));
     }
   }
 
-  const performOp = (nextOp) => {
+  const operator = (nextOp) => {
     const inputValue = parseFloat(display);
-
-    if (savedVal === null) {
-      setSavedVal(inputValue);
-    } else if (pendingOp) {
-      const current = savedVal;
-      const newValue = doMath(current, inputValue, pendingOp);
-      setSavedVal(newValue);
-      setDisplay(String(newValue).slice(0, 9));
+    
+    if (memory === null) {
+      setMemory(inputValue);
+    } else if (op) {
+      const result = calculate(memory, inputValue, op);
+      setDisplay(String(result).slice(0, 10)); // Обрезаем длинные хвосты
+      setMemory(result);
     }
 
     setWaiting(true);
-    setPendingOp(nextOp);
+    setOp(nextOp);
   }
 
-  const doMath = (a, b, op) => {
-    if (op === '/') return a / b;
-    if (op === '*') return a * b;
-    if (op === '+') return a + b;
-    if (op === '-') return a - b;
+  const calculate = (a, b, operation) => {
+    if (operation === '+') return a + b;
+    if (operation === '-') return a - b;
+    if (operation === 'x') return a * b;
+    if (operation === '/') return a / b;
     return b;
   }
 
-  const reset = () => { setDisplay('0'); setSavedVal(null); setPendingOp(null); setWaiting(false); }
+  const reset = () => { setDisplay('0'); setMemory(null); setOp(null); setWaiting(false); }
   const percent = () => setDisplay(String(parseFloat(display) / 100));
   const invert = () => setDisplay(String(parseFloat(display) * -1));
 
-  // --- RENDER HELPERS ---
-  const finishGuide = () => {
-    localStorage.setItem('ton_calc_v3', 'true');
-    setShowGuide(false);
+  // --- FLIP LOGIC ---
+  const getProfit = () => {
+    const b = parseFloat(buy);
+    const s = parseFloat(sell);
+    if (!b || !s) return null;
+    
+    // Формула: Продажа * 0.9 (10% комиссия: 5% сервис + 5% роялти) - Покупка
+    // Или сделаем 5% сервис + 5% роялти = 10%
+    const fees = s * 0.10; 
+    return (s - fees - b).toFixed(2);
   }
+  const profit = getProfit();
 
+  // --- RENDER ---
   return (
     <>
-      <div className="aurora-bg">
-        <div className="orb orb-1"></div>
-        <div className="orb orb-2"></div>
-      </div>
+      <div className="background"></div>
 
-      {/* SPLASH */}
-      {loading && (
-        <div className="splash">
-          <div className="splash-logo">💎</div>
-          <div className="splash-text">TON CALCULATOR</div>
-        </div>
-      )}
-
-      {/* GUIDE */}
-      {!loading && showGuide && (
+      {/* ГАЙД ПРИ ПЕРВОМ ВХОДЕ */}
+      {showGuide && (
         <div className="guide-overlay">
           <div className="guide-card">
-            <div className="guide-emoji">{guideStep === 1 ? '⚡️' : '💎'}</div>
-            <div className="guide-h">{guideStep === 1 ? 'Привет!' : 'Flip Mode'}</div>
-            <div className="guide-p">
-              {guideStep === 1 
-                ? 'Лучший калькулятор для TON трейдера. Простой, быстрый, красивый.' 
-                : 'Считай чистую прибыль с NFT мгновенно. Мы сами вычтем комиссию.'}
+            <div className="guide-icon">👋</div>
+            <div className="guide-title">Привет!</div>
+            <div className="guide-text">
+              Это твой новый инструмент.<br/><br/>
+              <b>Calc</b> — удобный калькулятор.<br/>
+              <b>Flip</b> — расчет прибыли с NFT.<br/>
             </div>
+            <button className="guide-btn" onClick={() => {
+              localStorage.setItem('ton_calc_visited', 'true');
+              setShowGuide(false);
+            }}>Понятно</button>
+          </div>
+        </div>
+      )}
+
+      <div className="app-header">
+        <div className="ton-price" onClick={fetchPrice}>
+          💎 1 TON ≈ ${tonPrice || '...'} 🔄
+        </div>
+        
+        {/* ПЕРЕКЛЮЧАТЕЛЬ */}
+        <div className="segmented-control">
+          <button className={`segment-btn ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Calc</button>
+          <button className={`segment-btn ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip</button>
+        </div>
+      </div>
+
+      <div className="content">
+        {/* РЕЖИМ: КАЛЬКУЛЯТОР */}
+        {mode === 'calc' && (
+          <div style={{animation: 'fadeIn 0.3s'}}>
+            <div className="calc-display">{display}</div>
+            <div className="calc-grid">
+              <button className="btn gray" onClick={reset}>AC</button>
+              <button className="btn gray" onClick={invert}>+/-</button>
+              <button className="btn gray" onClick={percent}>%</button>
+              <button className="btn orange" onClick={()=>operator('/')}>÷</button>
+              
+              <button className="btn" onClick={()=>num(7)}>7</button>
+              <button className="btn" onClick={()=>num(8)}>8</button>
+              <button className="btn" onClick={()=>num(9)}>9</button>
+              <button className="btn orange" onClick={()=>operator('x')}>×</button>
+              
+              <button className="btn" onClick={()=>num(4)}>4</button>
+              <button className="btn" onClick={()=>num(5)}>5</button>
+              <button className="btn" onClick={()=>num(6)}>6</button>
+              <button className="btn orange" onClick={()=>operator('-')}>−</button>
+              
+              <button className="btn" onClick={()=>num(1)}>1</button>
+              <button className="btn" onClick={()=>num(2)}>2</button>
+              <button className="btn" onClick={()=>num(3)}>3</button>
+              <button className="btn orange" onClick={()=>operator('+')}>+</button>
+              
+              <button className="btn zero" onClick={()=>num(0)}>0</button>
+              <button className="btn" onClick={()=>{if(!display.includes('.'))setDisplay(display+'.')}}>,</button>
+              <button className="btn orange" onClick={()=>operator('=')}>=</button>
+            </div>
+          </div>
+        )}
+
+        {/* РЕЖИМ: FLIP */}
+        {mode === 'flip' && (
+          <div className="flip-card">
+            <div className="input-label">Цена покупки (TON)</div>
+            <input type="number" className="input-field" placeholder="0" 
+                   value={buy} onChange={e=>setBuy(e.target.value)}/>
             
-            <div className="guide-dots">
-              <div className={`dot ${guideStep===1?'active':''}`}></div>
-              <div className={`dot ${guideStep===2?'active':''}`}></div>
-            </div>
+            <div className="input-label" style={{marginTop:'15px'}}>Цена продажи (TON)</div>
+            <input type="number" className="input-field" placeholder="0" 
+                   value={sell} onChange={e=>setSell(e.target.value)}/>
 
-            <button className="btn submit" style={{width:'100%', borderRadius:'20px', fontSize:'18px'}} 
-              onClick={() => guideStep === 1 ? setGuideStep(2) : finishGuide()}>
-              {guideStep === 1 ? 'Далее' : 'Начать'}
-            </button>
-          </div>
-        </div>
-      )}
-
-      {/* APP */}
-      {!loading && (
-        <div className="app-container">
-          
-          {/* TOGGLE */}
-          <div className="toggle-container">
-            <div className="toggle-glass">
-              <div className="toggle-slider" style={{transform: mode==='calc' ? 'translateX(0)' : 'translateX(100%)'}}></div>
-              <button className={`toggle-btn ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Calc</button>
-              <button className={`toggle-btn ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip</button>
-            </div>
-          </div>
-
-          {/* MODE: CALC */}
-          {mode === 'calc' && (
-            <div className="calc-wrapper" style={{animation: 'slideIn 0.3s ease'}}>
-              <div className="display-area">
-                <div className="main-display">{display}</div>
-              </div>
-              <div className="keypad">
-                <button className="btn" onClick={reset}>AC</button>
-                <button className="btn" onClick={invert}>+/-</button>
-                <button className="btn" onClick={percent}>%</button>
-                <button className="btn action" onClick={()=>performOp('/')}>÷</button>
-                
-                <button className="btn" onClick={()=>inputDigit(7)}>7</button>
-                <button className="btn" onClick={()=>inputDigit(8)}>8</button>
-                <button className="btn" onClick={()=>inputDigit(9)}>9</button>
-                <button className="btn action" onClick={()=>performOp('*')}>×</button>
-                
-                <button className="btn" onClick={()=>inputDigit(4)}>4</button>
-                <button className="btn" onClick={()=>inputDigit(5)}>5</button>
-                <button className="btn" onClick={()=>inputDigit(6)}>6</button>
-                <button className="btn action" onClick={()=>performOp('-')}>−</button>
-                
-                <button className="btn" onClick={()=>inputDigit(1)}>1</button>
-                <button className="btn" onClick={()=>inputDigit(2)}>2</button>
-                <button className="btn" onClick={()=>inputDigit(3)}>3</button>
-                <button className="btn action" onClick={()=>performOp('+')}>+</button>
-                
-                <button className="btn zero" onClick={()=>inputDigit(0)}>0</button>
-                <button className="btn" onClick={()=>{if(!display.includes('.'))setDisplay(display+'.')}}>.</button>
-                <button className="btn submit" onClick={()=>performOp('=')}>=</button>
-              </div>
-            </div>
-          )}
-
-          {/* MODE: FLIP */}
-          {mode === 'flip' && (
-            <div className="flip-wrapper" style={{animation: 'slideIn 0.3s ease'}}>
-              <div className="glass-panel">
-                <div className="input-block">
-                  <div className="label">Купил (TON)</div>
-                  <input type="number" className="glass-input" placeholder="0" 
-                    value={buy} onChange={e => setBuy(e.target.value)} />
+            {profit !== null && (
+              <div className="profit-info">
+                <div style={{fontSize:'12px', color:'#888', marginBottom:'5px'}}>Твой чистый профит:</div>
+                <div className="profit-val" style={{color: parseFloat(profit)>=0?'#32d74b':'#ff453a'}}>
+                  {parseFloat(profit)>0?'+':''}{profit} TON
                 </div>
+                {tonPrice && <div className="profit-usd">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
                 
-                <div className="input-block">
-                  <div className="label">Продал (TON)</div>
-                  <input type="number" className="glass-input" placeholder="0" 
-                    value={sell} onChange={e => setSell(e.target.value)} />
+                <div className="profit-desc">
+                  * Расчет включает 5% комиссию Getgems и 5% авторских отчислений (Royalty). Итого вычитается 10%.
                 </div>
-
-                {profit !== null && (
-                  <div className="result-card">
-                    <div className="res-val" style={{color: profit >= 0 ? '#32d74b' : '#ff453a'}}>
-                      {profit > 0 ? '+' : ''}{profit.toFixed(2)}
-                    </div>
-                    <div className="res-sub">TON PROFIT</div>
-                    <div style={{color:'white', marginTop:'10px', fontWeight:'600'}}>
-                      ≈ ${(profit * tonPrice).toFixed(2)}
-                    </div>
-                  </div>
-                )}
               </div>
-            </div>
-          )}
-
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </div>
     </>
   )
 }
