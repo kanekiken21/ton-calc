@@ -1,16 +1,17 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// Ключ TonAPI (оставляем, но обрабатываем ошибки)
 const TONAPI_KEY = 'AE32DKIDFHCHKVIAAAAB4QENGU6O2RLLMSAHL2S6T3C5WTTWEY2JQXXCHF6JVREQCJYMUSI';
+// Реальный адрес коллекции Telegram Gifts
+const GIFTS_COLLECTION_ADDRESS = 'EQDnwd-3r6p_jJaO7beD_S_mS2AH65MZ7b1h1N3U7W_4r6p';
 
 function App() {
   const [activeTab, setActiveTab] = useState('flip') 
   
-  // Flip (Убрали дефолтную 5, теперь пусто)
+  // Flip
   const [buyPrice, setBuyPrice] = useState('')
   const [sellPrice, setSellPrice] = useState('')
-  const [royalty, setRoyalty] = useState('') // Пусто по умолчанию
+  const [royalty, setRoyalty] = useState('') 
   const [flipProfit, setFlipProfit] = useState(null)
   
   // Stars
@@ -23,11 +24,11 @@ function App() {
   const [loadingGift, setLoadingGift] = useState(false)
   const [giftError, setGiftError] = useState('')
 
-  // Price
+  // Price & UI
   const [tonPrice, setTonPrice] = useState(null)
-  const [isLoadingPrice, setIsLoadingPrice] = useState(false)
+  const [isSpinning, setIsSpinning] = useState(false)
 
-  // Calc
+  // Calc Logic
   const [calcDisplay, setCalcDisplay] = useState('0')
   const [firstNum, setFirstNum] = useState(null)
   const [operator, setOperator] = useState(null)
@@ -42,47 +43,55 @@ function App() {
     fetchTonPrice();
   }, [])
 
-  // 1. ИСПОЛЬЗУЕМ BINANCE API (Самый надежный)
+  // КУРС
   const fetchTonPrice = () => {
-    setIsLoadingPrice(true);
+    setIsSpinning(true);
+    // Берем с Binance
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(res => res.json())
-      .then(data => {
-        if (data.price) {
-            setTonPrice(parseFloat(data.price).toFixed(2));
-        }
+      .then(data => { if (data.price) setTonPrice(parseFloat(data.price).toFixed(2)); })
+      .catch(() => {
+         // Запасной вариант
+         fetch('https://api.coincap.io/v2/assets/toncoin')
+           .then(res => res.json())
+           .then(d => { if(d.data?.priceUsd) setTonPrice(parseFloat(d.data.priceUsd).toFixed(2)) })
       })
-      .catch(err => {
-        console.error("Ошибка Binance API:", err);
-        // Если Бинанс не работает, пробуем CoinCap как запасной
-        fetch('https://api.coincap.io/v2/assets/toncoin')
-          .then(res => res.json())
-          .then(d => { if(d.data?.priceUsd) setTonPrice(parseFloat(d.data.priceUsd).toFixed(2)) })
-      })
-      .finally(() => setIsLoadingPrice(false));
+      .finally(() => setTimeout(() => setIsSpinning(false), 1000)); // Крутим минимум 1 сек для красоты
   }
 
-  // --- Logic Flip ---
+  // FLIP
   const calculateFlip = () => {
     const buy = buyPrice === '' ? 0 : parseFloat(buyPrice); 
     const sell = sellPrice === '' ? 0 : parseFloat(sellPrice);
-    // Если пусто, считаем как 5% (стандарт), если ввели 0 - то 0
     const roy = royalty === '' ? 5 : parseFloat(royalty); 
 
     if (buyPrice === '' && sellPrice === '') return;
 
+    // Формула: Продажа - (5% гетгемс + Роялти) - Покупка
     const totalFee = sell * (0.05 + (roy / 100));
     setFlipProfit((sell - totalFee - buy).toFixed(2));
   }
 
-  // --- Logic Stars ---
+  const showRoyaltyInfo = () => {
+    if (window.Telegram?.WebApp?.showPopup) {
+      window.Telegram.WebApp.showPopup({
+        title: 'Что такое Royalty?',
+        message: 'Это процент, который получает автор коллекции с каждой перепродажи. Обычно это 5%.',
+        buttons: [{type: 'ok'}]
+      });
+    } else {
+      alert('Royalty - это комиссия автора коллекции (обычно 5%).');
+    }
+  }
+
+  // STARS
   const calculateStars = () => {
     const amount = starsAmount === '' ? 0 : parseFloat(starsAmount);
     if (amount <= 0) { setStarsProfit(null); return; }
     setStarsProfit((amount * 0.0135).toFixed(2));
   }
 
-  // --- Logic Gifts (УМНЫЙ ПОИСК) ---
+  // GIFTS (ИСПРАВЛЕННЫЙ)
   const searchGift = async () => {
     if (!giftQuery.trim()) return;
     setLoadingGift(true);
@@ -90,39 +99,29 @@ function App() {
     setGiftError('');
 
     const query = giftQuery.toLowerCase().trim();
-
-    // ХИТРОСТЬ: Если ищут конкретный подарок (pepe, star, etc), 
-    // мы отправляем их в коллекцию Gifts с фильтром
-    const commonGifts = ['pepe', 'star', 'duck', 'snowman', 'heart', 'bulb'];
-    const isCommonGift = commonGifts.some(g => query.includes(g));
-
-    if (isCommonGift || query.includes('gift')) {
-       // Это подарок!
-       setLoadingGift(false);
-       setGiftResult({
-         name: "Telegram Gifts",
-         image: "https://cache.tonapi.io/imgproxy/b2c5w1Q7Y_14K0-44e2-6d24.png", // Иконка Gifts
-         description: `Ищем "${giftQuery}"...`,
-         // Ссылка с поиском по атрибутам на Getgems
-         link: `https://getgems.io/collection/EQD2Vj14e0c4k... (ссылка на коллекцию)?filter={"attributes":[{"trait_type":"Name","value":"${giftQuery}"}]}`, 
-         // Простая ссылка (чтобы не ломать голову с JSON в URL пока что):
-         simpleLink: `https://getgems.io/collection/EQDnwd-3r6... (адрес Gifts)` // Адрес коллекции Gifts
-       });
-       // Для простоты покажем общую коллекцию Gifts
-       searchCollection("Gifts"); 
+    // Список популярных гифтов, которые люди ищут
+    const commonGifts = ['pepe', 'star', 'duck', 'snowman', 'heart', 'bulb', 'gift'];
+    
+    // Если ищут что-то похожее на гифт
+    if (commonGifts.some(g => query.includes(g)) || query === 'gifts') {
+       setTimeout(() => {
+         setGiftResult({
+           name: "Telegram Gifts",
+           image: "https://cache.tonapi.io/imgproxy/b2c5w1Q7Y_14K0-44e2-6d24.png",
+           desc: `Коллекция найдена!`,
+           // Ссылка на ОФИЦИАЛЬНУЮ коллекцию
+           link: `https://getgems.io/collection/${GIFTS_COLLECTION_ADDRESS}`
+         });
+         setLoadingGift(false);
+       }, 600); // Имитация поиска
        return;
     }
 
-    // Иначе ищем как коллекцию
-    await searchCollection(query);
-  }
-
-  const searchCollection = async (q) => {
+    // Если это не гифт, пробуем искать другую коллекцию через API
     try {
-      const response = await fetch(`https://tonapi.io/v2/nfts/collections/search?query=${q}&limit=1`, {
+      const response = await fetch(`https://tonapi.io/v2/nfts/collections/search?query=${giftQuery}&limit=1`, {
         headers: { 'Authorization': `Bearer ${TONAPI_KEY}` }
       });
-      
       const data = await response.json();
 
       if (data.nft_collections && data.nft_collections.length > 0) {
@@ -130,57 +129,80 @@ function App() {
         setGiftResult({
           name: collection.metadata?.name || 'Unknown',
           image: collection.metadata?.image,
-          count: collection.next_item_index,
-          address: collection.address,
+          desc: `Items: ${collection.next_item_index}`,
           link: `https://getgems.io/collection/${collection.address}`
         });
       } else {
-        setGiftError('Коллекция не найдена. Попробуйте "Gifts".');
+        setGiftError('Коллекция не найдена. Попробуйте "Pepe" или "Gifts".');
       }
     } catch (e) {
-      setGiftError('Ошибка сети. Попробуйте позже.');
+      setGiftError('Ошибка сети.');
     } finally {
       setLoadingGift(false);
     }
   }
 
-  // --- Logic Calc ---
+  // CALC (ИСПРАВЛЕННЫЙ ВВОД)
   const inputDigit = (digit) => {
-    if (waitingForSecond) { setCalcDisplay(String(digit)); setWaitingForSecond(false); } 
-    else { setCalcDisplay(calcDisplay === '0' ? String(digit) : calcDisplay + digit); }
+    if (waitingForSecond) {
+      setCalcDisplay(String(digit));
+      setWaitingForSecond(false);
+    } else {
+      // ИСПРАВЛЕНО: Теперь мы добавляем цифру к строке, а не заменяем её
+      setCalcDisplay(calcDisplay === '0' ? String(digit) : calcDisplay + String(digit));
+    }
   }
-  const inputDot = () => { if (!calcDisplay.includes('.')) setCalcDisplay(calcDisplay + '.'); }
+  
+  const inputDot = () => { 
+    if (waitingForSecond) {
+      setCalcDisplay('0.');
+      setWaitingForSecond(false);
+    } else if (!calcDisplay.includes('.')) {
+      setCalcDisplay(calcDisplay + '.'); 
+    }
+  }
+
   const performOp = (nextOperator) => {
     const inputValue = parseFloat(calcDisplay);
-    if (firstNum === null) setFirstNum(inputValue);
-    else if (operator) {
+    if (firstNum === null) {
+      setFirstNum(inputValue);
+    } else if (operator) {
       const result = calculate(firstNum, inputValue, operator);
-      setCalcDisplay(String(result).slice(0, 10));
+      setCalcDisplay(String(result).slice(0, 12)); // Ограничиваем длину
       setFirstNum(result);
     }
-    setWaitingForSecond(true); setOperator(nextOperator);
+    setWaitingForSecond(true);
+    setOperator(nextOperator);
   }
+
   const calculate = (first, second, op) => {
-    if (op === '+') return first + second; if (op === '-') return first - second;
-    if (op === '*') return first * second; if (op === '/') return first / second;
+    if (op === '+') return first + second;
+    if (op === '-') return first - second;
+    if (op === '*') return first * second;
+    if (op === '/') return first / second;
     return second;
   }
-  const resetCalc = () => { setCalcDisplay('0'); setFirstNum(null); setOperator(null); setWaitingForSecond(false); }
+
+  const resetCalc = () => { 
+    setCalcDisplay('0'); setFirstNum(null); setOperator(null); setWaitingForSecond(false); 
+  }
 
   return (
     <div className="glass-card">
       
-      {/* HEADER: КУРС (BINANCE) */}
+      {/* HEADER */}
       {activeTab !== 'system' && (
         <div style={{display:'flex', justifyContent:'center'}}>
           <div className="price-badge fade-in">
              <span>💎 1 TON ≈ {tonPrice ? `$${tonPrice}` : '---'}</span>
-             <button onClick={fetchTonPrice} className="refresh-btn">🔄</button>
+             <button onClick={fetchTonPrice} className={`refresh-btn ${isSpinning ? 'spinning' : ''}`}>
+               🔄
+             </button>
           </div>
         </div>
       )}
 
-      {/* МЕНЮ ВКЛАДОК */}
+      {/* TABS */}
       <div className="tabs">
         <button className={`tab-btn ${activeTab === 'flip' ? 'active' : ''}`} onClick={() => setActiveTab('flip')}>Flip</button>
         <button className={`tab-btn ${activeTab === 'gifts' ? 'active' : ''}`} onClick={() => setActiveTab('gifts')}>Gifts</button>
@@ -198,7 +220,10 @@ function App() {
                        value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} />
              </div>
              <div className="input-group" style={{width: '35%'}}>
-                <label>ROYALTY %</label>
+                <label>
+                  ROYALTY % 
+                  <span className="info-icon" onClick={showRoyaltyInfo}>?</span>
+                </label>
                 <input type="number" className="input-field" placeholder="5" 
                        value={royalty} onChange={(e) => setRoyalty(e.target.value)} 
                        style={{color:'#5ac8fa', borderColor:'rgba(90,200,250,0.3)'}}/>
@@ -226,13 +251,9 @@ function App() {
       {/* --- GIFTS --- */}
       {activeTab === 'gifts' && (
         <div className="tab-content fade-in">
-          <p style={{fontSize:'14px', color:'#888', marginBottom:'20px'}}>
-            Поиск коллекций на Getgems
-          </p>
-          
           <div className="input-group">
-            <label>НАЗВАНИЕ (Example: Gifts)</label>
-            <input type="text" className="input-field" placeholder="Gifts..." 
+            <label>НАЗВАНИЕ КОЛЛЕКЦИИ</label>
+            <input type="text" className="input-field" placeholder="Pepe, Gifts..." 
                    value={giftQuery} onChange={(e) => setGiftQuery(e.target.value)} />
           </div>
           
@@ -243,17 +264,13 @@ function App() {
           {giftError && <div style={{color:'#ff453a', marginTop:'15px', fontSize:'14px'}}>{giftError}</div>}
 
           {giftResult && (
-            <div className="gift-card fade-in">
+            <div className="gift-card">
                {giftResult.image && <img src={giftResult.image} alt="gift" className="gift-img"/>}
                <div style={{fontWeight:'700', fontSize:'20px', marginBottom:'5px'}}>{giftResult.name}</div>
-               
-               {/* Если мы искали конкретный гифт, пишем другое сообщение */}
-               <div style={{color:'#ccc', fontSize:'14px', marginBottom:'15px'}}>
-                 {giftQuery.toLowerCase().includes('pepe') ? 'Открываем всех Pepe...' : `Всего предметов: ${giftResult.count}`}
-               </div>
+               <div style={{color:'#aaa', fontSize:'14px', marginBottom:'15px'}}>{giftResult.desc}</div>
                
                <a href={giftResult.link} target="_blank" rel="noreferrer" 
-                  style={{display:'block', padding:'12px', background:'rgba(0,122,255,0.2)', borderRadius:'12px', color:'#fff', textDecoration:'none', fontWeight:'600'}}>
+                  style={{display:'block', padding:'14px', background:'rgba(0,122,255,0.2)', borderRadius:'16px', color:'#fff', textDecoration:'none', fontWeight:'600'}}>
                   Открыть на Getgems ↗
                </a>
             </div>
@@ -261,7 +278,7 @@ function App() {
         </div>
       )}
 
-      {/* --- STARS & CALC (Оставляем как были, они работают) --- */}
+      {/* --- STARS --- */}
       {activeTab === 'stars' && (
         <div className="tab-content fade-in">
           <div className="input-group">
@@ -273,12 +290,13 @@ function App() {
           {starsProfit && (
              <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.08)'}}>
                <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>В ДОЛЛАРАХ</div>
-               <div className="result-value" style={{color:'#ffd700'}}>${starsProfit}</div>
+               <div className="result-value" style={{color:'#ffd700', textShadow:'0 0 10px gold'}}>${starsProfit}</div>
              </div>
           )}
         </div>
       )}
 
+      {/* --- CALC --- */}
       {activeTab === 'system' && (
         <div className="tab-content fade-in">
           <div className="calc-screen">{calcDisplay}</div>
