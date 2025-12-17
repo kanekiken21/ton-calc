@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// Твой ключ TonAPI (обычно их прячут, но для Mini App пойдет)
 const TONAPI_KEY = 'AE32DKIDFHCHKVIAAAAB4QENGU6O2RLLMSAHL2S6T3C5WTTWEY2JQXXCHF6JVREQCJYMUSI';
 
 function App() {
   const [activeTab, setActiveTab] = useState('flip') 
   
-  // State Flip
+  // State Flip (Используем строки, чтобы не было нулей)
   const [buyPrice, setBuyPrice] = useState('')
   const [sellPrice, setSellPrice] = useState('')
   const [royalty, setRoyalty] = useState('5')
@@ -17,13 +16,14 @@ function App() {
   const [starsAmount, setStarsAmount] = useState('')
   const [starsProfit, setStarsProfit] = useState(null)
   
-  // State Gifts (НОВОЕ)
+  // State Gifts
   const [giftQuery, setGiftQuery] = useState('')
   const [giftResult, setGiftResult] = useState(null)
   const [loadingGift, setLoadingGift] = useState(false)
 
   // Общие данные
   const [tonPrice, setTonPrice] = useState(null)
+  const [isLoadingPrice, setIsLoadingPrice] = useState(false)
 
   // State Calc
   const [calcDisplay, setCalcDisplay] = useState('0')
@@ -37,45 +37,54 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000'); 
       window.Telegram.WebApp.expand();
     }
+    fetchTonPrice(); // Грузим курс при старте
+  }, [])
 
-    // Качаем курс. Если API глючит, ставим хардкод 1.53, как ты сказал
+  // Функция загрузки курса (можно вызывать кнопкой)
+  const fetchTonPrice = () => {
+    setIsLoadingPrice(true);
     fetch('https://api.coingecko.com/api/v3/simple/price?ids=toncoin&vs_currencies=usd')
-      .then(response => response.json())
+      .then(res => res.json())
       .then(data => {
-        if (data['toncoin']) {
-            setTonPrice(data['toncoin'].usd);
+        if (data.toncoin?.usd) {
+            setTonPrice(data.toncoin.usd);
         } else {
-            setTonPrice(1.53); // Фолбек, если API не ответил
+            console.error("Нет данных о курсе");
         }
       })
-      .catch(() => setTonPrice(1.53)); // Если ошибка сети, верим тебе про 1.53
-  }, [])
+      .catch(err => console.error(err))
+      .finally(() => setIsLoadingPrice(false));
+  }
 
   // --- Logic Flip ---
   const calculateFlip = () => {
-    const buy = parseFloat(buyPrice); 
-    const sell = parseFloat(sellPrice);
-    const roy = parseFloat(royalty);
-    if (isNaN(buy) || isNaN(sell)) return;
+    // Если пусто, считаем как 0
+    const buy = buyPrice === '' ? 0 : parseFloat(buyPrice); 
+    const sell = sellPrice === '' ? 0 : parseFloat(sellPrice);
+    const roy = royalty === '' ? 0 : parseFloat(royalty);
+    
+    // Но если оба поля пусты, ничего не делаем
+    if (buyPrice === '' && sellPrice === '') return;
+
     const totalFee = sell * (0.05 + (roy / 100));
     setFlipProfit((sell - totalFee - buy).toFixed(2));
   }
 
   // --- Logic Stars ---
   const calculateStars = () => {
-    const amount = parseFloat(starsAmount);
-    if (isNaN(amount)) return;
+    const amount = starsAmount === '' ? 0 : parseFloat(starsAmount);
+    if (amount <= 0) { setStarsProfit(null); return; }
     setStarsProfit((amount * 0.0135).toFixed(2));
   }
 
-  // --- Logic Gifts (НОВОЕ: TonAPI) ---
+  // --- Logic Gifts (Search Collection) ---
   const searchGift = async () => {
-    if (!giftQuery) return;
+    if (!giftQuery.trim()) return;
     setLoadingGift(true);
     setGiftResult(null);
 
     try {
-      // 1. Ищем коллекцию по названию
+      // Ищем КОЛЛЕКЦИЮ
       const response = await fetch(`https://tonapi.io/v2/nfts/collections/search?query=${giftQuery}&limit=1`, {
         headers: { 'Authorization': `Bearer ${TONAPI_KEY}` }
       });
@@ -83,32 +92,19 @@ function App() {
 
       if (data.nft_collections && data.nft_collections.length > 0) {
         const collection = data.nft_collections[0];
-        
-        // 2. Достаем адрес и пытаемся узнать флор (через API аккаунта или статистики)
-        // Для простоты покажем найденную коллекцию. 
-        // TonAPI иногда отдает floor внутри metadata, но надежнее просто показать, что нашли.
-        
-        // Попытаемся получить расширенную инфу, чтобы найти floor
-        const detailsRes = await fetch(`https://tonapi.io/v2/nfts/collections/${collection.address}`, {
-            headers: { 'Authorization': `Bearer ${TONAPI_KEY}` }
-        });
-        const details = await detailsRes.json();
-
         setGiftResult({
           name: collection.metadata?.name || 'Unknown',
           image: collection.metadata?.image,
-          // В TonAPI floor может не приходить прямо здесь, но мы покажем что нашли
-          // Если бы мы делали маркетплейс, мы бы парсили items.
-          // Пока выведем items_count как индикатор
           count: collection.next_item_index,
-          address: collection.address.slice(0, 8) + '...' + collection.address.slice(-4)
+          address: collection.address,
+          // Ссылка на Getgems, так как API не ищет предметы по имени
+          link: `https://getgems.io/collection/${collection.address}`
         });
       } else {
-        alert('Коллекция не найдена');
+        alert('Коллекция не найдена. Попробуйте ввести "Gifts" или "Anonymous"');
       }
     } catch (e) {
-      console.error(e);
-      alert('Ошибка поиска');
+      alert('Ошибка соединения с TonAPI');
     } finally {
       setLoadingGift(false);
     }
@@ -142,12 +138,17 @@ function App() {
       
       {/* HEADER: КУРС */}
       {activeTab !== 'system' && (
-        <div style={{display:'flex', flexDirection:'column', alignItems:'center'}}>
-          {tonPrice && <div className="price-badge fade-in">💎 1 TON ≈ ${tonPrice}</div>}
+        <div style={{display:'flex', justifyContent:'center'}}>
+          <div className="price-badge fade-in">
+             <span>💎 1 TON ≈ {tonPrice ? `$${tonPrice}` : '---'}</span>
+             <button onClick={fetchTonPrice} className="refresh-btn" style={{opacity: isLoadingPrice ? 0.5 : 1}}>
+               🔄
+             </button>
+          </div>
         </div>
       )}
 
-      {/* МЕНЮ ВКЛАДОК (4 ШТУКИ) */}
+      {/* МЕНЮ ВКЛАДОК */}
       <div className="tabs">
         <button className={`tab-btn ${activeTab === 'flip' ? 'active' : ''}`} onClick={() => setActiveTab('flip')}>Flip</button>
         <button className={`tab-btn ${activeTab === 'gifts' ? 'active' : ''}`} onClick={() => setActiveTab('gifts')}>Gifts</button>
@@ -161,54 +162,60 @@ function App() {
           <div className="input-row">
              <div className="input-group" style={{flex: 1}}>
                 <label>Купил (TON)</label>
-                <input type="number" className="input-field" placeholder="0" value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} />
+                <input type="number" className="input-field" placeholder="0" 
+                       value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} />
              </div>
-             <div className="input-group" style={{width: '70px'}}>
-                <label>Royalty</label>
-                <input type="number" className="input-field" placeholder="5" value={royalty} onChange={(e) => setRoyalty(e.target.value)} 
-                       style={{color:'#5ac8fa', borderColor:'rgba(90,200,250,0.3)'}}/>
+             <div className="input-group" style={{width: '90px'}}>
+                <label>Royalty %</label>
+                <input type="number" className="input-field" placeholder="5" 
+                       value={royalty} onChange={(e) => setRoyalty(e.target.value)} 
+                       style={{color:'#5ac8fa', borderColor:'rgba(90,200,250,0.2)'}}/>
              </div>
           </div>
           <div className="input-group">
             <label>Продал (TON)</label>
-            <input type="number" className="input-field" placeholder="0" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} />
+            <input type="number" className="input-field" placeholder="0" 
+                   value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} />
           </div>
           <button className="action-btn" onClick={calculateFlip}>Посчитать</button>
           
           {flipProfit !== null && (
             <div className="result-box">
-              <div style={{color:'#aaa', fontSize:'12px', marginBottom:'5px'}}>Чистая прибыль</div>
-              <div className="result-value" style={{color: flipProfit >= 0 ? '#4ade80' : '#ff453a'}}>{flipProfit} TON</div>
-              {tonPrice && <div style={{color:'#888', fontSize:'13px', marginTop:'5px'}}>≈ ${(flipProfit * tonPrice).toFixed(2)}</div>}
+              <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>Чистая прибыль</div>
+              <div className="result-value" style={{color: flipProfit >= 0 ? '#32d74b' : '#ff453a'}}>
+                {parseFloat(flipProfit) > 0 ? '+' : ''}{flipProfit} TON
+              </div>
+              {tonPrice && <div style={{color:'#888', fontSize:'14px', marginTop:'5px'}}>≈ ${(parseFloat(flipProfit) * tonPrice).toFixed(2)}</div>}
             </div>
           )}
         </div>
       )}
 
-      {/* --- GIFTS (НОВОЕ) --- */}
+      {/* --- GIFTS --- */}
       {activeTab === 'gifts' && (
         <div className="tab-content fade-in">
-          <p style={{fontSize:'13px', color:'#aaa', marginBottom:'15px'}}>Найди коллекцию (Beta)</p>
+          <p style={{fontSize:'14px', color:'#888', marginBottom:'20px'}}>Поиск флора коллекций</p>
           
           <div className="input-group">
-            <label>Название (например: Star)</label>
-            <input type="text" className="input-field" placeholder="Red Star..." 
+            <label>Название коллекции (например: Gifts)</label>
+            <input type="text" className="input-field" placeholder="Введите название..." 
                    value={giftQuery} onChange={(e) => setGiftQuery(e.target.value)} />
           </div>
           
           <button className="action-btn" onClick={searchGift} disabled={loadingGift}>
-            {loadingGift ? 'Ищем...' : 'Найти коллекцию'}
+            {loadingGift ? 'Ищем...' : 'Найти'}
           </button>
 
           {giftResult && (
             <div className="gift-card fade-in">
                {giftResult.image && <img src={giftResult.image} alt="gift" className="gift-img"/>}
-               <div style={{fontWeight:'bold', fontSize:'18px'}}>{giftResult.name}</div>
-               <div style={{color:'#aaa', fontSize:'12px', marginTop:'5px'}}>Address: {giftResult.address}</div>
-               <div style={{color:'#5ac8fa', fontSize:'14px', marginTop:'10px'}}>Items: {giftResult.count}</div>
-               <div style={{marginTop:'10px', fontSize:'12px', color:'#666'}}>
-                 (Цены скоро будут)
-               </div>
+               <div style={{fontWeight:'700', fontSize:'20px', marginBottom:'5px'}}>{giftResult.name}</div>
+               <div style={{color:'#5ac8fa', fontSize:'14px'}}>Items: {giftResult.count}</div>
+               
+               <a href={giftResult.link} target="_blank" rel="noreferrer" 
+                  style={{display:'block', marginTop:'15px', color:'#007aff', textDecoration:'none', fontWeight:'600'}}>
+                  Открыть на Getgems ↗
+               </a>
             </div>
           )}
         </div>
@@ -218,12 +225,14 @@ function App() {
       {activeTab === 'stars' && (
         <div className="tab-content fade-in">
           <div className="input-group">
-            <label>Количество Звезд</label>
-            <input type="number" className="input-field" placeholder="1000" value={starsAmount} onChange={(e) => setStarsAmount(e.target.value)} />
+            <label>Количество Звезд ⭐️</label>
+            <input type="number" className="input-field" placeholder="0" 
+                   value={starsAmount} onChange={(e) => setStarsAmount(e.target.value)} />
           </div>
-          <button className="action-btn" onClick={calculateStars}>В Доллары ($)</button>
-          {starsProfit !== null && (
-             <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.1)'}}>
+          <button className="action-btn" onClick={calculateStars}>Конвертировать</button>
+          {starsProfit && (
+             <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.08)'}}>
+               <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>Примерно в долларах</div>
                <div className="result-value" style={{color:'#ffd700'}}>${starsProfit}</div>
              </div>
           )}
@@ -239,22 +248,18 @@ function App() {
             <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)*-1))}><span>+/-</span></button>
             <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)/100))}><span>%</span></button>
             <button className="calc-btn blue" onClick={() => performOp('/')}><span>÷</span></button>
-            
             <button className="calc-btn" onClick={() => inputDigit(7)}><span>7</span></button>
             <button className="calc-btn" onClick={() => inputDigit(8)}><span>8</span></button>
             <button className="calc-btn" onClick={() => inputDigit(9)}><span>9</span></button>
             <button className="calc-btn blue" onClick={() => performOp('*')}><span>×</span></button>
-
             <button className="calc-btn" onClick={() => inputDigit(4)}><span>4</span></button>
             <button className="calc-btn" onClick={() => inputDigit(5)}><span>5</span></button>
             <button className="calc-btn" onClick={() => inputDigit(6)}><span>6</span></button>
             <button className="calc-btn blue" onClick={() => performOp('-')}><span>−</span></button>
-
             <button className="calc-btn" onClick={() => inputDigit(1)}><span>1</span></button>
             <button className="calc-btn" onClick={() => inputDigit(2)}><span>2</span></button>
             <button className="calc-btn" onClick={() => inputDigit(3)}><span>3</span></button>
             <button className="calc-btn blue" onClick={() => performOp('+')}><span>+</span></button>
-
             <button className="calc-btn zero" onClick={() => inputDigit(0)}><span>0</span></button>
             <button className="calc-btn" onClick={inputDot}><span>.</span></button>
             <button className="calc-btn primary" onClick={() => performOp('=')}><span>=</span></button>
