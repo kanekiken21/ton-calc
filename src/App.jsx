@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+// СЛОВАРЬ
 const t = {
   ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)' },
   en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)' },
@@ -8,6 +9,7 @@ const t = {
 }
 
 function App() {
+  const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState('calc') 
   const [lang, setLang] = useState('ru')
   const [showSettings, setShowSettings] = useState(false)
@@ -16,7 +18,7 @@ function App() {
   // Flip States
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
-  const [feeType, setFeeType] = useState('std') // 'std' | 'custom'
+  const [feeType, setFeeType] = useState('std') 
   const [customFee, setCustomFee] = useState('')
 
   // Calc States
@@ -34,13 +36,13 @@ function App() {
       if (userLang === 'uk') setLang('ua');
       if (userLang === 'en') setLang('en');
     }
-    
+    setTimeout(() => setLoading(false), 2500);
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // CALC
+  // CALC LOGIC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -59,12 +61,10 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP
+  // FLIP LOGIC
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
-    
-    // std = 10% (5% getgems + 5% royalty), custom = ввод
     const fee = feeType === 'std' ? 10 : (parseFloat(customFee) || 0);
     return (s * (1 - fee/100) - b).toFixed(2);
   }
@@ -73,6 +73,28 @@ function App() {
   return (
     <>
       <div className="bg-fx"></div>
+
+      {/* SPLASH SCREEN С НОВЫМ ЛОГОТИПОМ */}
+      {loading && (
+        <div className="splash">
+          {/* ВСТРОЕННЫЙ SVG ЛОГОТИП */}
+          <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
+            <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
+            <defs>
+              <linearGradient id="paint0_linear" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#007AFF"/>
+                <stop offset="1" stopColor="#00F0FF"/>
+              </linearGradient>
+              <linearGradient id="paint1_linear" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#00F0FF"/>
+                <stop offset="1" stopColor="#007AFF"/>
+              </linearGradient>
+            </defs>
+          </svg>
+          <div className="splash-text">my TON Calculator</div>
+        </div>
+      )}
 
       <div className="island">
         
@@ -102,7 +124,7 @@ function App() {
         {/* CALC MODE */}
         {mode === 'calc' && (
           <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
-            <div className="screen">{display}</div>
+            <div className="calc-screen">{display}</div>
             <div className="keypad">
               <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
