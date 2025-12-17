@@ -1,4 +1,4 @@
-/* --- ОСНОВА (Возвращаем глубокий черный и градиент) --- */
+/* --- ОСНОВА --- */
 body {
   margin: 0;
   display: flex;
@@ -6,7 +6,8 @@ body {
   min-width: 320px;
   min-height: 100vh;
   background: #000000;
-  background: radial-gradient(circle at 50% 10%, #1a1a2e, #000000); /* Легкий синий отлив сверху */
+  /* Глубокий, дорогой градиент */
+  background: radial-gradient(circle at 50% 0%, #1a1f35, #000000 80%);
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   overflow: hidden;
@@ -20,22 +21,23 @@ body {
   align-items: center;
 }
 
-/* Карточка приложения (Более стеклянная) */
+/* Карточка приложения */
 .glass-card {
-  background: rgba(15, 15, 20, 0.8);
+  background: rgba(18, 18, 24, 0.85);
   backdrop-filter: blur(40px) saturate(180%);
   -webkit-backdrop-filter: blur(40px) saturate(180%);
   border-radius: 32px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 25px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 24px;
   width: 92%;
   max-width: 380px;
-  box-shadow: 0 0 40px rgba(0, 122, 255, 0.15); /* Неоновое свечение вокруг карточки */
+  /* Неоновое свечение вокруг карточки */
+  box-shadow: 0 0 50px rgba(0, 122, 255, 0.15);
   text-align: center;
   box-sizing: border-box;
 }
 
-/* --- УБИРАЕМ СТРЕЛКИ В INPUT --- */
+/* Убираем стрелки в input number */
 input[type=number]::-webkit-inner-spin-button, 
 input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
 input[type=number] { -moz-appearance: textfield; }
@@ -43,9 +45,9 @@ input[type=number] { -moz-appearance: textfield; }
 /* --- ВКЛАДКИ --- */
 .tabs {
   display: flex;
-  background: rgba(255, 255, 255, 0.05);
-  border-radius: 18px;
-  padding: 5px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 16px;
+  padding: 4px;
   margin-bottom: 25px;
   border: 1px solid rgba(255,255,255,0.05);
 }
@@ -56,129 +58,137 @@ input[type=number] { -moz-appearance: textfield; }
   border: none;
   color: #666;
   padding: 10px 0;
-  border-radius: 14px;
+  border-radius: 12px;
   font-weight: 600;
   font-size: 13px;
   transition: 0.3s;
 }
 
 .tab-btn.active {
-  background: rgba(50, 50, 50, 0.5);
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
-  text-shadow: 0 0 10px rgba(255,255,255,0.3); /* Свечение текста */
+  box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  text-shadow: 0 0 12px rgba(255,255,255,0.4);
 }
 
-/* --- ПОЛЯ ВВОДА --- */
-.input-group { margin-bottom: 15px; text-align: left; }
-.input-row { display: flex; gap: 10px; }
-label { font-size: 12px; color: #5ac8fa; margin-bottom: 8px; display: block; margin-left: 8px; font-weight: 600; letter-spacing: 0.5px;}
+/* --- ПОЛЯ ВВОДА (Ровные) --- */
+.input-group { margin-bottom: 16px; text-align: left; }
+.input-row { display: flex; gap: 12px; }
+
+label { 
+  font-size: 12px; 
+  color: #5ac8fa; /* Голубой текст лейбла */
+  margin-bottom: 8px; 
+  display: block; 
+  margin-left: 4px; 
+  font-weight: 700; 
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+}
 
 .input-field {
-  width: 100%; padding: 16px;
-  background: rgba(0, 0, 0, 0.4);
+  width: 100%; 
+  padding: 16px 20px; /* Отступы внутри */
+  background: rgba(0, 0, 0, 0.3);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 20px;
-  color: white; font-size: 20px; outline: none; box-sizing: border-box;
-  text-align: center; font-weight: 600;
+  border-radius: 18px;
+  color: white; 
+  font-size: 19px; 
+  outline: none; 
+  box-sizing: border-box;
+  text-align: left; /* Выравнивание слева! */
+  font-weight: 500;
   transition: 0.3s;
-  box-shadow: inset 0 2px 5px rgba(0,0,0,0.5);
 }
+
+.input-field::placeholder { color: rgba(255,255,255,0.2); }
+
 .input-field:focus { 
   border-color: #007aff; 
-  box-shadow: 0 0 15px rgba(0, 122, 255, 0.3), inset 0 2px 5px rgba(0,0,0,0.5); /* НЕОН ПРИ ВВОДЕ */
+  background: rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 20px rgba(0, 122, 255, 0.2); /* Неон при фокусе */
 }
 
 /* --- КНОПКИ --- */
 .action-btn {
-  background: linear-gradient(135deg, #007aff, #0056b3);
-  border: none; padding: 18px; border-radius: 20px;
+  background: linear-gradient(90deg, #007aff, #0056b3);
+  border: none; padding: 18px; border-radius: 18px;
   color: white; font-weight: 700; font-size: 17px;
-  cursor: pointer; margin-top: 15px; width: 100%;
-  box-shadow: 0 0 20px rgba(0, 122, 255, 0.4); /* Сильный неон */
+  cursor: pointer; margin-top: 10px; width: 100%;
+  box-shadow: 0 0 25px rgba(0, 122, 255, 0.35); /* Сильный неон */
   transition: transform 0.1s;
 }
-.action-btn:active { transform: scale(0.96); }
-.action-btn:disabled { opacity: 0.5; box-shadow: none; }
+.action-btn:active { transform: scale(0.97); }
+.action-btn:disabled { opacity: 0.5; box-shadow: none; cursor: not-allowed;}
 
 .refresh-btn {
   background: none; border: none; cursor: pointer; padding: 5px;
-  color: #5ac8fa; font-size: 16px;
+  color: #5ac8fa; font-size: 16px; margin-left: 5px;
 }
 
 /* --- РЕЗУЛЬТАТЫ --- */
 .result-box {
   margin-top: 25px; padding: 20px;
-  background: rgba(0, 255, 120, 0.05); 
-  border: 1px solid rgba(0, 255, 120, 0.2);
-  border-radius: 24px;
-  box-shadow: 0 0 15px rgba(0, 255, 120, 0.1);
+  background: rgba(0, 255, 120, 0.04); 
+  border: 1px solid rgba(0, 255, 120, 0.15);
+  border-radius: 20px;
+  box-shadow: 0 0 30px rgba(0, 255, 120, 0.05);
 }
 .result-value { 
   font-size: 32px; font-weight: 800; 
   color: #32d74b; margin: 5px 0;
-  text-shadow: 0 0 20px rgba(50, 215, 75, 0.4); /* Неоновый текст */
+  text-shadow: 0 0 15px rgba(50, 215, 75, 0.3);
 }
 
 .price-badge {
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.5);
   border: 1px solid rgba(0, 122, 255, 0.3);
   color: #5ac8fa;
-  padding: 8px 16px;
+  padding: 6px 14px;
   border-radius: 30px;
   font-size: 14px;
   font-weight: 600;
-  display: inline-flex; align-items: center; gap: 8px;
+  display: inline-flex; align-items: center; gap: 5px;
   margin-bottom: 20px;
-  box-shadow: 0 0 15px rgba(0, 122, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.15);
 }
 
 /* --- КАРТОЧКА GIFTS --- */
 .gift-card {
-  background: rgba(0,0,0,0.3);
-  border-radius: 24px; padding: 20px; margin-top: 20px;
-  border: 1px solid rgba(255,255,255,0.1); text-align: center;
+  background: rgba(255,255,255,0.03);
+  border-radius: 20px; padding: 20px; margin-top: 20px;
+  border: 1px solid rgba(255,255,255,0.08); text-align: center;
 }
 .gift-img {
-  width: 80px; height: 80px; border-radius: 50%;
+  width: 70px; height: 70px; border-radius: 50%;
   margin-bottom: 12px; object-fit: cover;
-  box-shadow: 0 0 20px rgba(255,255,255,0.2);
+  box-shadow: 0 0 20px rgba(255,255,255,0.1);
 }
 
-/* --- КАЛЬКУЛЯТОР (НЕОНОВЫЙ) --- */
+/* --- КАЛЬКУЛЯТОР --- */
 .calc-screen {
   text-align: right; font-size: 60px; font-weight: 200;
   margin-bottom: 20px; height: 75px; color: #ffffff; overflow: hidden;
-  text-shadow: 0 0 10px rgba(255,255,255,0.5); /* Свечение цифр */
+  text-shadow: 0 0 10px rgba(255,255,255,0.5);
 }
 .calc-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
 
 .calc-btn {
   width: 100%; padding-bottom: 100%; height: 0;
   border-radius: 50%; border: none;
-  font-size: 28px; color: white; 
-  background: rgba(255, 255, 255, 0.05);
-  cursor: pointer; position: relative;
-  transition: 0.2s;
+  font-size: 28px; color: white; background: rgba(255, 255, 255, 0.06);
+  cursor: pointer; position: relative; transition: 0.2s;
 }
 .calc-btn span { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); }
-.calc-btn:active { background: rgba(255, 255, 255, 0.2); transform: scale(0.95); }
+.calc-btn:active { background: rgba(255, 255, 255, 0.2); }
 
-/* Синие кнопки (Операции) */
-.calc-btn.blue { 
-  background: rgba(0, 122, 255, 0.15); 
-  color: #5ac8fa; 
-  box-shadow: 0 0 10px rgba(0, 122, 255, 0.1);
-}
-.calc-btn.blue:active { background: rgba(0, 122, 255, 0.3); box-shadow: 0 0 20px rgba(0, 122, 255, 0.4); }
-
-/* Оранжевая кнопка (Равно) -> Делаем Синим Неоном */
+/* Цвета кнопок */
+.calc-btn.blue { background: rgba(0, 122, 255, 0.15); color: #5ac8fa; }
 .calc-btn.primary { 
   background: linear-gradient(135deg, #007aff, #0051aa); 
   color: white; 
-  box-shadow: 0 0 20px rgba(0, 122, 255, 0.5); /* Яркое свечение */
+  box-shadow: 0 0 25px rgba(0, 122, 255, 0.5); /* НЕОН */
 }
-
 .calc-btn.zero { grid-column: span 2; padding-bottom: 46%; border-radius: 50px; }
 .calc-btn.zero span { left: 24%; }
 
