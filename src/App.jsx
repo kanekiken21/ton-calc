@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// СЛОВАРЬ (Исправил текст кнопок)
+// СЛОВАРЬ (Мультиязычность)
 const t = {
   ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат' },
   en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate' },
@@ -14,7 +14,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
   
-  // Состояние загрузки доната
+  // Состояние загрузки (крутилка на кнопке доната)
   const [isDonating, setIsDonating] = useState(false)
 
   // Flip Logic State
@@ -30,10 +30,13 @@ function App() {
   const [memory, setMemory] = useState(null)
 
   useEffect(() => {
+    // Инициализация Telegram
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
+      
+      // Авто-определение языка
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
       else if (userLang === 'en') setLang('en');
@@ -46,38 +49,53 @@ function App() {
   }, [])
 
   // --- ACTIONS ---
-  const openLink = (url) => window.open(url, '_blank');
   
-  // ФУНКЦИЯ ДОНАТА (С защитой от ошибок)
+  // Открытие обычных ссылок
+  const openLink = (url) => {
+    if (window.Telegram?.WebApp) {
+        window.Telegram.WebApp.openLink(url);
+    } else {
+        window.open(url, '_blank');
+    }
+  };
+  
+  // --- ФУНКЦИЯ ДОНАТА (ИСПРАВЛЕННАЯ) ---
   const handleDonate = async () => {
     setIsDonating(true);
     try {
-      // Пытаемся создать инвойс через наш Backend
-      const res = await fetch('/api/donate'); 
+      // 1. Стучимся на наш сервер (Vercel)
+      const res = await fetch('/api/donate');
       
-      // Если мы локально, fetch может вернуть HTML 404, проверяем это:
+      // 2. Проверяем, что вернулся JSON, а не ошибка HTML
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("API недоступно (возможно, вы тестируете локально?)");
+        throw new Error("Сервер не вернул JSON. Проверьте папку api.");
       }
 
       const data = await res.json();
       
       if (data.url) {
-        window.open(data.url, '_blank'); // Открываем CryptoBot
+        // 3. ОТКРЫВАЕМ ССЫЛКУ ПРАВИЛЬНО (через Telegram WebApp)
+        // Это решает проблему блокировки всплывающих окон
+        if (window.Telegram?.WebApp?.openInvoice) {
+             // Можно попробовать открыть как инвойс, но openLink надежнее для внешних ссылок CryptoBot
+             window.Telegram.WebApp.openLink(data.url);
+        } else {
+             window.location.href = data.url; 
+        }
       } else {
-        alert('Ошибка CryptoBot. Попробуйте позже.');
+        // Показываем реальную ошибку от Криптобота
+        alert(`Ошибка CryptoBot: ${data.error || 'Неизвестная ошибка'}`);
       }
     } catch (e) {
       console.error(e);
-      // Мягкое сообщение об ошибке
-      alert('Донат работает только после публикации в Telegram (Vercel).');
+      alert(`Ошибка соединения: ${e.message}`);
     } finally {
       setIsDonating(false);
     }
   }
 
-  // CALC LOGIC
+  // --- CALC LOGIC ---
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -96,7 +114,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP LOGIC
+  // --- FLIP LOGIC ---
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -143,8 +161,9 @@ function App() {
                 <span style={{opacity:0.5}}>↗</span>
               </button>
               
+              {/* КНОПКА ДОНАТА */}
               <button className="menu-btn gold" onClick={handleDonate} disabled={isDonating}>
-                <span>⭐️ {isDonating ? '...' : t[lang].donate}</span>
+                <span>⭐️ {isDonating ? 'Wait...' : t[lang].donate}</span>
                 <span>♥</span>
               </button>
             </div>

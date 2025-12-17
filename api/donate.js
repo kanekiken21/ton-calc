@@ -1,13 +1,14 @@
 // api/donate.js
-// Этот код работает на сервере, ключ здесь в безопасности.
 
 export default async function handler(req, res) {
-  // Твой ключ CryptoBot
+  // Твой ключ (Mainnet)
   const API_KEY = '502788:AAaVLL4nMA4Pc9uYFqkBpuqW9BVomUuROTt';
+  
+  // URL для Mainnet (для реальных денег)
+  const URL = 'https://pay.crypt.bot/api/createInvoice';
 
   try {
-    // Создаем инвойс на 1 TON (можешь поменять amount: '1' на сколько хочешь)
-    const response = await fetch('https://pay.crypt.bot/api/createInvoice', {
+    const response = await fetch(URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -15,24 +16,26 @@ export default async function handler(req, res) {
       },
       body: JSON.stringify({
         asset: 'TON',
-        amount: '1', // Сумма доната
+        amount: '1', // Сумма доната: 1 TON
         description: 'Donation to my TON Calc 💎',
-        allow_comments: true,
-        expires_in: 3600 // Ссылка живет 1 час
+        // allow_comments: true,
+        // expires_in: 3600
       })
     });
 
     const data = await response.json();
 
     if (data.ok) {
-      // Отправляем ссылку на оплату обратно в приложение
+      // Успех! Возвращаем ссылку
       res.status(200).json({ url: data.result.pay_url });
     } else {
-      console.error('CryptoBot Error:', data);
-      res.status(500).json({ error: 'Failed to create invoice' });
+      // Ошибка от самого Криптобота (например, ключ не тот)
+      console.error('CryptoBot API Error:', data);
+      res.status(400).json({ error: data.error?.name || 'CryptoBot Error' });
     }
   } catch (error) {
-    console.error('Server Error:', error);
-    res.status(500).json({ error: 'Server error' });
+    // Ошибка сервера/сети
+    console.error('Server Internal Error:', error);
+    res.status(500).json({ error: error.message });
   }
 }
