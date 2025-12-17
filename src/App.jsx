@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
+// СЛОВАРЬ (Исправил текст кнопок)
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат (1 TON)' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate (1 TON)' },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат (1 TON)' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат' }
 }
 
 function App() {
@@ -38,28 +39,39 @@ function App() {
       else if (userLang === 'en') setLang('en');
     }
     
+    // Получаем курс с Binance
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // ACTIONS
+  // --- ACTIONS ---
   const openLink = (url) => window.open(url, '_blank');
   
-  // ФУНКЦИЯ ДОНАТА (Через наш Backend)
+  // ФУНКЦИЯ ДОНАТА (С защитой от ошибок)
   const handleDonate = async () => {
     setIsDonating(true);
     try {
-      const res = await fetch('/api/donate'); // Стучимся на сервер
+      // Пытаемся создать инвойс через наш Backend
+      const res = await fetch('/api/donate'); 
+      
+      // Если мы локально, fetch может вернуть HTML 404, проверяем это:
+      const contentType = res.headers.get("content-type");
+      if (!contentType || !contentType.includes("application/json")) {
+        throw new Error("API недоступно (возможно, вы тестируете локально?)");
+      }
+
       const data = await res.json();
+      
       if (data.url) {
         window.open(data.url, '_blank'); // Открываем CryptoBot
       } else {
-        alert('Ошибка создания инвойса. Попробуйте позже.');
+        alert('Ошибка CryptoBot. Попробуйте позже.');
       }
     } catch (e) {
       console.error(e);
-      alert('Ошибка сети');
+      // Мягкое сообщение об ошибке
+      alert('Донат работает только после публикации в Telegram (Vercel).');
     } finally {
       setIsDonating(false);
     }
@@ -132,7 +144,7 @@ function App() {
               </button>
               
               <button className="menu-btn gold" onClick={handleDonate} disabled={isDonating}>
-                <span>⭐️ {isDonating ? 'Loading...' : t[lang].donate}</span>
+                <span>⭐️ {isDonating ? '...' : t[lang].donate}</span>
                 <span>♥</span>
               </button>
             </div>
