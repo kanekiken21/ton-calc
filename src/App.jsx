@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react'
 import './App.css'
 
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Donate' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate' },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Donate' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат (1 TON)' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate (1 TON)' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат (1 TON)' }
 }
 
 function App() {
@@ -12,14 +12,17 @@ function App() {
   const [lang, setLang] = useState('ru')
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
+  
+  // Состояние загрузки доната
+  const [isDonating, setIsDonating] = useState(false)
 
-  // Flip
+  // Flip Logic State
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
   const [feeType, setFeeType] = useState('std') 
   const [customFee, setCustomFee] = useState('')
 
-  // Calc
+  // Calc Logic State
   const [display, setDisplay] = useState('0')
   const [waiting, setWaiting] = useState(false)
   const [op, setOp] = useState(null)
@@ -32,7 +35,7 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000');
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      if (userLang === 'en') setLang('en');
+      else if (userLang === 'en') setLang('en');
     }
     
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -43,13 +46,26 @@ function App() {
   // ACTIONS
   const openLink = (url) => window.open(url, '_blank');
   
-  const handleDonate = () => {
-    // В идеале тут нужен запрос на бэкенд. 
-    // Пока открываем CryptoBot или твой канал с инструкцией.
-    openLink('https://t.me/CryptoBot'); 
+  // ФУНКЦИЯ ДОНАТА (Через наш Backend)
+  const handleDonate = async () => {
+    setIsDonating(true);
+    try {
+      const res = await fetch('/api/donate'); // Стучимся на сервер
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, '_blank'); // Открываем CryptoBot
+      } else {
+        alert('Ошибка создания инвойса. Попробуйте позже.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Ошибка сети');
+    } finally {
+      setIsDonating(false);
+    }
   }
 
-  // CALC
+  // CALC LOGIC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -68,7 +84,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP
+  // FLIP LOGIC
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -98,7 +114,7 @@ function App() {
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
         </div>
 
-        {/* SETTINGS MENU (NEW DESIGN) */}
+        {/* SETTINGS MENU (HUB) */}
         {showSettings && (
           <div className="modal-overlay">
             <h3 style={{marginBottom:'25px', color:'white'}}>{t[lang].sets}</h3>
@@ -115,8 +131,8 @@ function App() {
                 <span style={{opacity:0.5}}>↗</span>
               </button>
               
-              <button className="menu-btn gold" onClick={handleDonate}>
-                <span>⭐️ {t[lang].donate}</span>
+              <button className="menu-btn gold" onClick={handleDonate} disabled={isDonating}>
+                <span>⭐️ {isDonating ? 'Loading...' : t[lang].donate}</span>
                 <span>♥</span>
               </button>
             </div>
