@@ -6,26 +6,27 @@ const TONAPI_KEY = 'AE32DKIDFHCHKVIAAAAB4QENGU6O2RLLMSAHL2S6T3C5WTTWEY2JQXXCHF6J
 function App() {
   const [activeTab, setActiveTab] = useState('flip') 
   
-  // State Flip (Используем строки, чтобы не было нулей)
+  // Flip
   const [buyPrice, setBuyPrice] = useState('')
   const [sellPrice, setSellPrice] = useState('')
   const [royalty, setRoyalty] = useState('5')
   const [flipProfit, setFlipProfit] = useState(null)
   
-  // State Stars
+  // Stars
   const [starsAmount, setStarsAmount] = useState('')
   const [starsProfit, setStarsProfit] = useState(null)
   
-  // State Gifts
+  // Gifts
   const [giftQuery, setGiftQuery] = useState('')
   const [giftResult, setGiftResult] = useState(null)
   const [loadingGift, setLoadingGift] = useState(false)
+  const [giftError, setGiftError] = useState('')
 
-  // Общие данные
+  // Price
   const [tonPrice, setTonPrice] = useState(null)
   const [isLoadingPrice, setIsLoadingPrice] = useState(false)
 
-  // State Calc
+  // Calc
   const [calcDisplay, setCalcDisplay] = useState('0')
   const [firstNum, setFirstNum] = useState(null)
   const [operator, setOperator] = useState(null)
@@ -37,33 +38,33 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000'); 
       window.Telegram.WebApp.expand();
     }
-    fetchTonPrice(); // Грузим курс при старте
+    fetchTonPrice();
   }, [])
 
-  // Функция загрузки курса (можно вызывать кнопкой)
+  // 1. ИСПРАВЛЕННЫЙ ФЕТЧ КУРСА (CoinCap вместо CoinGecko)
   const fetchTonPrice = () => {
     setIsLoadingPrice(true);
-    fetch('https://api.coingecko.com/api/v3/simple/price?ids=toncoin&vs_currencies=usd')
+    // Используем CoinCap - он часто надежнее для бесплатных запросов
+    fetch('https://api.coincap.io/v2/assets/toncoin')
       .then(res => res.json())
       .then(data => {
-        if (data.toncoin?.usd) {
-            setTonPrice(data.toncoin.usd);
+        if (data.data && data.data.priceUsd) {
+            setTonPrice(parseFloat(data.data.priceUsd).toFixed(2));
         } else {
-            console.error("Нет данных о курсе");
+            console.error("Ошибка формата данных CoinCap");
         }
       })
-      .catch(err => console.error(err))
+      .catch(err => {
+        console.error("Ошибка сети:", err);
+      })
       .finally(() => setIsLoadingPrice(false));
   }
 
   // --- Logic Flip ---
   const calculateFlip = () => {
-    // Если пусто, считаем как 0
     const buy = buyPrice === '' ? 0 : parseFloat(buyPrice); 
     const sell = sellPrice === '' ? 0 : parseFloat(sellPrice);
     const roy = royalty === '' ? 0 : parseFloat(royalty);
-    
-    // Но если оба поля пусты, ничего не делаем
     if (buyPrice === '' && sellPrice === '') return;
 
     const totalFee = sell * (0.05 + (roy / 100));
@@ -77,17 +78,25 @@ function App() {
     setStarsProfit((amount * 0.0135).toFixed(2));
   }
 
-  // --- Logic Gifts (Search Collection) ---
+  // --- Logic Gifts (Исправленный поиск) ---
   const searchGift = async () => {
     if (!giftQuery.trim()) return;
     setLoadingGift(true);
     setGiftResult(null);
+    setGiftError('');
 
     try {
-      // Ищем КОЛЛЕКЦИЮ
+      // Пытаемся найти коллекцию
+      // Важно: TonAPI ищет по имени коллекции. 
+      // Если ввести "Gifts", он найдет "Telegram Gifts".
       const response = await fetch(`https://tonapi.io/v2/nfts/collections/search?query=${giftQuery}&limit=1`, {
         headers: { 'Authorization': `Bearer ${TONAPI_KEY}` }
       });
+      
+      if (!response.ok) {
+        throw new Error(`Ошибка API: ${response.status}`);
+      }
+
       const data = await response.json();
 
       if (data.nft_collections && data.nft_collections.length > 0) {
@@ -97,14 +106,14 @@ function App() {
           image: collection.metadata?.image,
           count: collection.next_item_index,
           address: collection.address,
-          // Ссылка на Getgems, так как API не ищет предметы по имени
           link: `https://getgems.io/collection/${collection.address}`
         });
       } else {
-        alert('Коллекция не найдена. Попробуйте ввести "Gifts" или "Anonymous"');
+        setGiftError('Коллекция не найдена. Попробуйте точное название (например: "Gifts", "Anonymous").');
       }
     } catch (e) {
-      alert('Ошибка соединения с TonAPI');
+      console.error(e);
+      setGiftError('Ошибка соединения. Проверьте интернет.');
     } finally {
       setLoadingGift(false);
     }
@@ -141,8 +150,8 @@ function App() {
         <div style={{display:'flex', justifyContent:'center'}}>
           <div className="price-badge fade-in">
              <span>💎 1 TON ≈ {tonPrice ? `$${tonPrice}` : '---'}</span>
-             <button onClick={fetchTonPrice} className="refresh-btn" style={{opacity: isLoadingPrice ? 0.5 : 1}}>
-               🔄
+             <button onClick={fetchTonPrice} className="refresh-btn" disabled={isLoadingPrice}>
+               {isLoadingPrice ? '...' : '🔄'}
              </button>
           </div>
         </div>
@@ -161,31 +170,31 @@ function App() {
         <div className="tab-content fade-in">
           <div className="input-row">
              <div className="input-group" style={{flex: 1}}>
-                <label>Купил (TON)</label>
+                <label>КУПИЛ (TON)</label>
                 <input type="number" className="input-field" placeholder="0" 
                        value={buyPrice} onChange={(e) => setBuyPrice(e.target.value)} />
              </div>
              <div className="input-group" style={{width: '90px'}}>
-                <label>Royalty %</label>
+                <label>ROYALTY %</label>
                 <input type="number" className="input-field" placeholder="5" 
                        value={royalty} onChange={(e) => setRoyalty(e.target.value)} 
-                       style={{color:'#5ac8fa', borderColor:'rgba(90,200,250,0.2)'}}/>
+                       style={{color:'#5ac8fa', borderColor:'rgba(90,200,250,0.3)'}}/>
              </div>
           </div>
           <div className="input-group">
-            <label>Продал (TON)</label>
+            <label>ПРОДАЛ (TON)</label>
             <input type="number" className="input-field" placeholder="0" 
                    value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} />
           </div>
-          <button className="action-btn" onClick={calculateFlip}>Посчитать</button>
+          <button className="action-btn" onClick={calculateFlip}>ПОСЧИТАТЬ</button>
           
           {flipProfit !== null && (
             <div className="result-box">
-              <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>Чистая прибыль</div>
+              <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>ЧИСТАЯ ПРИБЫЛЬ</div>
               <div className="result-value" style={{color: flipProfit >= 0 ? '#32d74b' : '#ff453a'}}>
                 {parseFloat(flipProfit) > 0 ? '+' : ''}{flipProfit} TON
               </div>
-              {tonPrice && <div style={{color:'#888', fontSize:'14px', marginTop:'5px'}}>≈ ${(parseFloat(flipProfit) * tonPrice).toFixed(2)}</div>}
+              {tonPrice && <div style={{color:'#888', fontSize:'14px', marginTop:'5px', textShadow:'none'}}>≈ ${(parseFloat(flipProfit) * tonPrice).toFixed(2)}</div>}
             </div>
           )}
         </div>
@@ -194,26 +203,30 @@ function App() {
       {/* --- GIFTS --- */}
       {activeTab === 'gifts' && (
         <div className="tab-content fade-in">
-          <p style={{fontSize:'14px', color:'#888', marginBottom:'20px'}}>Поиск флора коллекций</p>
+          <p style={{fontSize:'14px', color:'#888', marginBottom:'20px'}}>
+            Поиск коллекций на Getgems
+          </p>
           
           <div className="input-group">
-            <label>Название коллекции (например: Gifts)</label>
-            <input type="text" className="input-field" placeholder="Введите название..." 
+            <label>НАЗВАНИЕ (Example: Gifts)</label>
+            <input type="text" className="input-field" placeholder="Gifts..." 
                    value={giftQuery} onChange={(e) => setGiftQuery(e.target.value)} />
           </div>
           
           <button className="action-btn" onClick={searchGift} disabled={loadingGift}>
-            {loadingGift ? 'Ищем...' : 'Найти'}
+            {loadingGift ? 'ИЩЕМ...' : 'НАЙТИ'}
           </button>
+
+          {giftError && <div style={{color:'#ff453a', marginTop:'15px', fontSize:'14px'}}>{giftError}</div>}
 
           {giftResult && (
             <div className="gift-card fade-in">
                {giftResult.image && <img src={giftResult.image} alt="gift" className="gift-img"/>}
                <div style={{fontWeight:'700', fontSize:'20px', marginBottom:'5px'}}>{giftResult.name}</div>
-               <div style={{color:'#5ac8fa', fontSize:'14px'}}>Items: {giftResult.count}</div>
+               <div style={{color:'#5ac8fa', fontSize:'14px', marginBottom:'15px'}}>Items: {giftResult.count}</div>
                
                <a href={giftResult.link} target="_blank" rel="noreferrer" 
-                  style={{display:'block', marginTop:'15px', color:'#007aff', textDecoration:'none', fontWeight:'600'}}>
+                  style={{display:'block', padding:'10px', background:'rgba(0,122,255,0.2)', borderRadius:'12px', color:'#fff', textDecoration:'none', fontWeight:'600'}}>
                   Открыть на Getgems ↗
                </a>
             </div>
@@ -225,15 +238,15 @@ function App() {
       {activeTab === 'stars' && (
         <div className="tab-content fade-in">
           <div className="input-group">
-            <label>Количество Звезд ⭐️</label>
+            <label>КОЛИЧЕСТВО ЗВЕЗД ⭐️</label>
             <input type="number" className="input-field" placeholder="0" 
                    value={starsAmount} onChange={(e) => setStarsAmount(e.target.value)} />
           </div>
-          <button className="action-btn" onClick={calculateStars}>Конвертировать</button>
+          <button className="action-btn" onClick={calculateStars}>КОНВЕРТИРОВАТЬ</button>
           {starsProfit && (
-             <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.08)'}}>
-               <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>Примерно в долларах</div>
-               <div className="result-value" style={{color:'#ffd700'}}>${starsProfit}</div>
+             <div className="result-box" style={{borderColor:'gold', background:'rgba(255,215,0,0.08)', boxShadow:'0 0 15px rgba(255,215,0,0.1)'}}>
+               <div style={{color:'#aaa', fontSize:'13px', marginBottom:'8px'}}>В ДОЛЛАРАХ</div>
+               <div className="result-value" style={{color:'#ffd700', textShadow:'0 0 10px gold'}}>${starsProfit}</div>
              </div>
           )}
         </div>
