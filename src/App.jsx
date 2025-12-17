@@ -119,19 +119,47 @@ function App() {
       {loading && (
         <div className="splash">
            <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
-            <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
-            <defs>
-              <linearGradient id="paint0_linear" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#007AFF"/>
-                <stop offset="1" stopColor="#BD00FF"/>
-              </linearGradient>
-              <linearGradient id="paint1_linear" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#00F2FF"/>
-                <stop offset="1" stopColor="#007AFF"/>
-              </linearGradient>
-            </defs>
-          </svg>
+  {/* Морозное свечение (Filter Definition) */}
+  <defs>
+    <filter id="frostGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0   0 0 0 0 0.7   0 0 0 0 1  0 0 0 1 0" result="frostBlue"/>
+      <feMerge>
+        <feMergeNode in="frostBlue" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+  </defs>
+
+  <g filter="url(#frostGlow)">
+    {/* Основной Кристалл */}
+    <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear_ny)"/>
+    <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear_ny)"/>
+    
+    {/* Снежинки (Круги) */}
+    <circle cx="50" cy="30" r="3" fill="white" opacity="0.8" />
+    <circle cx="150" cy="60" r="2.5" fill="white" opacity="0.7" />
+    <circle cx="100" cy="100" r="4" fill="white" opacity="0.9" />
+    <circle cx="30" cy="150" r="2" fill="white" opacity="0.6" />
+    <circle cx="170" cy="130" r="3.5" fill="white" opacity="0.8" />
+    <circle cx="80" cy="180" r="2" fill="white" opacity="0.7" />
+    <circle cx="120" cy="10" r="2.5" fill="white" opacity="0.8" />
+    <circle cx="10" cy="80" r="3" fill="white" opacity="0.6" />
+    <circle cx="190" cy="90" r="2" fill="white" opacity="0.7" />
+  </g>
+
+  {/* Градиенты (немного холоднее) */}
+  <defs>
+    <linearGradient id="paint0_linear_ny" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stopColor="#007AFF"/>
+      <stop offset="1" stopColor="#80FFFF"/> {/* Более ледяной cyan */}
+    </linearGradient>
+    <linearGradient id="paint1_linear_ny" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+      <stop stopColor="#80FFFF"/>
+      <stop offset="1" stopColor="#007AFF"/>
+    </linearGradient>
+  </defs>
+</svg>
           <div className="splash-text">my TON Calc</div>
         </div>
       )}
