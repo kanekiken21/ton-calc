@@ -14,7 +14,7 @@ function App() {
   // Flip Logic
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
-  const [feeType, setFeeType] = useState('std') // 'std' (10%) or 'custom'
+  const [feeType, setFeeType] = useState('std') // 'std' or 'custom'
   const [customFee, setCustomFee] = useState('')
 
   useEffect(() => {
@@ -26,7 +26,7 @@ function App() {
     // Binance API
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
-      .catch(() => setTonPrice('6.50'));
+      .catch(() => setTonPrice('6.20'));
   }, [])
 
   // --- CALC LOGIC ---
@@ -52,38 +52,35 @@ function App() {
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
-    
-    // Если стандарт - 10% (5% маркет + 5% роялти). Если кастом - берем ввод
-    const feePercent = feeType === 'std' ? 10 : (parseFloat(customFee) || 0);
-    
-    const profitVal = s * (1 - feePercent/100) - b;
-    return profitVal.toFixed(2);
+    const fee = feeType === 'std' ? 10 : (parseFloat(customFee) || 0);
+    return (s * (1 - fee/100) - b).toFixed(2);
   }
   const profit = getProfit();
 
   return (
     <>
-      <div className="bg-space"></div>
+      <div className="bg-fx"></div>
 
-      <div className="main-card">
+      {/* ГЛАВНЫЙ ОСТРОВ - 320px MAX */}
+      <div className="island-card">
         
         {/* HEADER */}
         <div className="header">
-          <div style={{fontWeight:'800', fontSize:'16px'}}>TON Calc ⚡️</div>
-          <div className="price-pill">💎 ${tonPrice || '...'}</div>
+          <div className="app-title">my TON Calc</div>
+          <div className="price-tag">💎 ${tonPrice || '...'}</div>
         </div>
 
         {/* TABS */}
         <div className="tabs">
-          <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Калькулятор</button>
+          <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Calc</button>
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip NFT</button>
         </div>
 
         {/* --- CALC MODE --- */}
         {mode === 'calc' && (
-          <div style={{animation:'popIn 0.3s'}}>
-            <div className="screen">{display}</div>
-            <div className="keypad">
+          <div style={{animation:'popUp 0.3s'}}>
+            <div className="calc-screen">{display}</div>
+            <div className="calc-grid">
               <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
@@ -113,7 +110,7 @@ function App() {
 
         {/* --- FLIP MODE --- */}
         {mode === 'flip' && (
-          <div style={{animation:'popIn 0.3s'}}>
+          <div style={{animation:'popUp 0.3s'}}>
             <div className="label">Купил (TON)</div>
             <input type="number" className="input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
             
@@ -122,21 +119,17 @@ function App() {
 
             <div className="label">Комиссия</div>
             <div className="fees">
-              <div className={`fee-chip ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>
-                Getgems (10%)
-              </div>
-              <div className={`fee-chip ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>
-                Своя (%)
-              </div>
+              <button className={`fee-btn ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
+              <button className={`fee-btn ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>Своя (%)</button>
             </div>
 
             {feeType === 'custom' && (
-               <input type="number" className="input" placeholder="Например: 5" value={customFee} onChange={e=>setCustomFee(e.target.value)} style={{marginTop:'-5px'}} />
+               <input type="number" className="input" placeholder="5" value={customFee} onChange={e=>setCustomFee(e.target.value)} style={{marginTop:'-10px'}}/>
             )}
 
             {profit !== null && (
-              <div className="result-card">
-                <div style={{fontSize:'12px', color:'#aaa'}}>Чистый профит</div>
+              <div className="result">
+                <div style={{fontSize:'10px', color:'#aaa'}}>Чистый профит</div>
                 <div className="res-val">{parseFloat(profit)>0?'+':''}{profit} TON</div>
                 {tonPrice && <div className="res-sub">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
               </div>
