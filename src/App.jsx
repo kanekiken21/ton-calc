@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// СЛОВАРЬ
+// СЛОВАРЬ (3 ЯЗЫКА)
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)' },
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)' },
   ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)' }
 }
 
@@ -34,7 +34,7 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000');
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      if (userLang === 'en') setLang('en');
+      else if (userLang === 'en') setLang('en');
     }
     setTimeout(() => setLoading(false), 2500);
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -42,7 +42,7 @@ function App() {
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // CALC LOGIC
+  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -52,7 +52,7 @@ function App() {
     if (memory === null) setMemory(val);
     else if (op) {
       const res = calc(memory, val, op);
-      setDisplay(String(res).slice(0, 9)); setMemory(res);
+      setDisplay(String(res).slice(0, 10)); setMemory(res);
     }
     setWaiting(true); setOp(o);
   }
@@ -61,7 +61,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP LOGIC
+  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -72,12 +72,16 @@ function App() {
 
   return (
     <>
-      <div className="bg-fx"></div>
+      {/* ФОН С ШАРАМИ */}
+      <div className="background-container">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
+      </div>
 
-      {/* SPLASH SCREEN С НОВЫМ ЛОГОТИПОМ */}
+      {/* SPLASH С ЛОГО */}
       {loading && (
         <div className="splash">
-          {/* ВСТРОЕННЫЙ SVG ЛОГОТИП */}
           <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
             <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
@@ -92,28 +96,27 @@ function App() {
               </linearGradient>
             </defs>
           </svg>
-          <div className="splash-text">my TON Calculator</div>
+          <div className="splash-text">my TON Calc</div>
         </div>
       )}
 
+      {/* ОСТРОВ */}
       <div className="island">
         
-        {/* HEADER */}
         <div className="header">
           <div className="title">TON Tools 💎 ${tonPrice || '...'}</div>
-          <div className="settings-icon" onClick={()=>setShowSettings(true)}>⚙️</div>
+          <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
         </div>
 
-        {/* TABS */}
         <div className="tabs">
           <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>{t[lang].calc}</button>
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
         </div>
 
-        {/* SETTINGS */}
+        {/* НАСТРОЙКИ */}
         {showSettings && (
           <div className="modal-overlay">
-            <h3 style={{marginBottom:'20px'}}>{t[lang].sets}</h3>
+            <h3 style={{marginBottom:'20px', color:'white'}}>{t[lang].sets}</h3>
             <button className={`lang-btn ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>Русский 🇷🇺</button>
             <button className={`lang-btn ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>English 🇺🇸</button>
             <button className={`lang-btn ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>Українська 🇺🇦</button>
@@ -121,11 +124,11 @@ function App() {
           </div>
         )}
 
-        {/* CALC MODE */}
+        {/* CALC */}
         {mode === 'calc' && (
           <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
             <div className="calc-screen">{display}</div>
-            <div className="keypad">
+            <div className="calc-grid">
               <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
@@ -153,7 +156,7 @@ function App() {
           </div>
         )}
 
-        {/* FLIP MODE */}
+        {/* FLIP */}
         {mode === 'flip' && (
           <div className="flip-cont">
             <div className="label">{t[lang].buy}</div>
@@ -174,9 +177,9 @@ function App() {
 
             {profit !== null && (
               <div className="result">
-                <div style={{fontSize:'10px', color:'#aaa'}}>{t[lang].profit}</div>
+                <div style={{fontSize:'12px', color:'#aaa'}}>{t[lang].profit}</div>
                 <div className="res-val">{parseFloat(profit)>0?'+':''}{profit} TON</div>
-                {tonPrice && <div className="res-sub">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
+                {tonPrice && <div style={{fontSize:'12px', color:'#888', marginTop:'5px'}}>≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
               </div>
             )}
           </div>
