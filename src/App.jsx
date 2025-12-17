@@ -1,11 +1,10 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// СЛОВАРЬ
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Поддержать (50⭐️)' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate (50⭐️)' },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Підтримати (50⭐️)' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Donate' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Donate' }
 }
 
 function App() {
@@ -14,13 +13,13 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
 
-  // Flip Logic State
+  // Flip
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
   const [feeType, setFeeType] = useState('std') 
   const [customFee, setCustomFee] = useState('')
 
-  // Calc Logic State
+  // Calc
   const [display, setDisplay] = useState('0')
   const [waiting, setWaiting] = useState(false)
   const [op, setOp] = useState(null)
@@ -33,17 +32,24 @@ function App() {
       window.Telegram.WebApp.setHeaderColor('#000000');
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      else if (userLang === 'en') setLang('en');
+      if (userLang === 'en') setLang('en');
     }
+    
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // --- ACTIONS ---
+  // ACTIONS
   const openLink = (url) => window.open(url, '_blank');
+  
+  const handleDonate = () => {
+    // В идеале тут нужен запрос на бэкенд. 
+    // Пока открываем CryptoBot или твой канал с инструкцией.
+    openLink('https://t.me/CryptoBot'); 
+  }
 
-  // --- CALC LOGIC ---
+  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -62,7 +68,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // --- FLIP LOGIC ---
+  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -73,15 +79,15 @@ function App() {
 
   return (
     <>
-      <div className="bg-fx"></div>
+      <div className="bg-aurora"></div>
 
       <div className="island">
         
         {/* HEADER */}
         <div className="header">
-          <div className="title-box">
+          <div className="brand">
             <span className="app-title">my TON Calc</span>
-            <span className="beta-badge">BETA</span>
+            <span className="beta">BETA</span>
           </div>
           <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
         </div>
@@ -92,32 +98,34 @@ function App() {
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
         </div>
 
-        {/* SETTINGS MODAL */}
+        {/* SETTINGS MENU (NEW DESIGN) */}
         {showSettings && (
           <div className="modal-overlay">
-            <h3 style={{marginBottom:'20px', color:'white'}}>{t[lang].sets}</h3>
+            <h3 style={{marginBottom:'25px', color:'white'}}>{t[lang].sets}</h3>
             
-            {/* Языки */}
-            <div className="lang-grid">
-              <button className={`lang-btn ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
-              <button className={`lang-btn ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
-              <button className={`lang-btn ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
+            <div className="lang-row">
+              <button className={`lang-chip ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
+              <button className={`lang-chip ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
+              <button className={`lang-chip ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
             </div>
 
-            {/* Меню */}
-            <div className="menu-item" onClick={()=>openLink('https://t.me/mytoncalculator')}>
-              <span>📢 {t[lang].news}</span>
-              <span>↗</span>
-            </div>
-            
-            <div className="menu-item gold" onClick={()=>openLink('https://t.me/mytoncalculator')}>
-              <span>⭐️ {t[lang].donate}</span>
-              <span>♥</span>
+            <div className="menu-list">
+              <button className="menu-btn" onClick={()=>openLink('https://t.me/mytoncalculator')}>
+                <span>📢 {t[lang].news}</span>
+                <span style={{opacity:0.5}}>↗</span>
+              </button>
+              
+              <button className="menu-btn gold" onClick={handleDonate}>
+                <span>⭐️ {t[lang].donate}</span>
+                <span>♥</span>
+              </button>
             </div>
 
-            <button className="btn" style={{width:'100%', borderRadius:'16px', marginTop:'20px', background:'#ff4d4d', fontSize:'16px', fontWeight:'600'}} onClick={()=>setShowSettings(false)}>
-              {t[lang].close}
-            </button>
+            <div style={{marginTop:'auto', width:'100%', display:'flex', justifyContent:'center'}}>
+               <button className="btn" style={{borderRadius:'20px', fontSize:'16px', background:'rgba(255,255,255,0.1)'}} onClick={()=>setShowSettings(false)}>
+                 ✕
+               </button>
+            </div>
           </div>
         )}
 
@@ -126,36 +134,36 @@ function App() {
           <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
             <div className="screen">{display}</div>
             <div className="keypad">
-              <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
+              <button className="btn" onClick={reset} style={{color:'#ff453a'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
-              <button className="btn blue" onClick={()=>operator('/')}>÷</button>
+              <button className="btn op" onClick={()=>operator('/')}>÷</button>
               
               <button className="btn" onClick={()=>num(7)}>7</button>
               <button className="btn" onClick={()=>num(8)}>8</button>
               <button className="btn" onClick={()=>num(9)}>9</button>
-              <button className="btn blue" onClick={()=>operator('x')}>×</button>
+              <button className="btn op" onClick={()=>operator('x')}>×</button>
               
               <button className="btn" onClick={()=>num(4)}>4</button>
               <button className="btn" onClick={()=>num(5)}>5</button>
               <button className="btn" onClick={()=>num(6)}>6</button>
-              <button className="btn blue" onClick={()=>operator('-')}>−</button>
+              <button className="btn op" onClick={()=>operator('-')}>−</button>
               
               <button className="btn" onClick={()=>num(1)}>1</button>
               <button className="btn" onClick={()=>num(2)}>2</button>
               <button className="btn" onClick={()=>num(3)}>3</button>
-              <button className="btn blue" onClick={()=>operator('+')}>+</button>
+              <button className="btn op" onClick={()=>operator('+')}>+</button>
               
               <button className="btn zero" onClick={()=>num(0)}>0</button>
               <button className="btn" onClick={()=>{if(!display.includes('.'))setDisplay(display+'.')}}>.</button>
-              <button className="btn neon" onClick={()=>operator('=')}>=</button>
+              <button className="btn eq" onClick={()=>operator('=')}>=</button>
             </div>
           </div>
         )}
 
         {/* FLIP MODE */}
         {mode === 'flip' && (
-          <div className="flip-cont">
+          <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
             <div className="label">{t[lang].buy}</div>
             <input type="number" className="input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
             
