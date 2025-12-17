@@ -32,12 +32,12 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
-      // Включаем свайп закрытия (опционально)
-      window.Telegram.WebApp.enableClosingConfirmation();
-      
+      // Пытаемся блокировать скролл методами ТГ
+      window.Telegram.WebApp.isVerticalSwipesEnabled = false; 
+
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      else if (userLang === 'en') setLang('en');
+      if (userLang === 'en') setLang('en');
     }
     setTimeout(() => setLoading(false), 2000);
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -45,17 +45,13 @@ function App() {
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // --- УМНАЯ НАВИГАЦИЯ ---
+  // --- НАВИГАЦИЯ (МГНОВЕННАЯ) ---
   const safeOpenLink = (url) => {
     const tg = window.Telegram?.WebApp;
-    if (tg) {
-        // Если это ссылка на Telegram (канал, бот), открываем внутри
-        if (url.startsWith('https://t.me/')) {
-            tg.openTelegramLink(url);
-        } else {
-            // Внешняя ссылка (Safari)
-            tg.openLink(url);
-        }
+    if (tg && url.startsWith('https://t.me/')) {
+        tg.openTelegramLink(url);
+    } else if (tg) {
+        tg.openLink(url);
     } else {
         window.open(url, '_blank');
     }
@@ -72,9 +68,8 @@ function App() {
           body: JSON.stringify({ amount })
       });
       const data = await res.json();
-      
       if (data.url) {
-        // CryptoBot возвращает t.me ссылку - открываем внутри Телеграма!
+        // CryptoBot это ссылка t.me, поэтому открываем через openTelegramLink
         safeOpenLink(data.url);
       } else {
         alert('Ошибка CryptoBot: ' + (data.error || 'Unknown'));
@@ -115,14 +110,12 @@ function App() {
 
   return (
     <>
-      {/* ФОН (Lava) */}
       <div className="ambient-bg">
         <div className="blob blob-1"></div>
         <div className="blob blob-2"></div>
         <div className="blob blob-3"></div>
       </div>
 
-      {/* SPLASH */}
       {loading && (
         <div className="splash">
            <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -143,7 +136,6 @@ function App() {
         </div>
       )}
 
-      {/* ОСТРОВ */}
       <div className="island-wrapper">
         <div className="island-glow"></div>
         <div className="island">
@@ -151,8 +143,12 @@ function App() {
           <div className="header">
             <div className="brand">
               <span className="app-title">my TON Calc</span>
-              <span className="beta">BETA</span>
+              <div className="ton-price">
+                 <span className="ton-icon">💎</span> 
+                 {tonPrice ? `$${tonPrice}` : '...'}
+              </div>
             </div>
+            <span className="beta">BETA</span>
             <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
           </div>
 
@@ -161,7 +157,6 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
-          {/* SETTINGS POPUP */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
@@ -179,7 +174,6 @@ function App() {
                       <span style={{opacity:0.5}}>↗</span>
                     </button>
                     
-                    {/* DONATE INPUT */}
                     <div style={{display:'flex', gap:'10px'}}>
                         <input type="number" className="input" style={{marginBottom:0, flex:1, fontSize:'16px', padding:'12px', textAlign:'left'}} 
                                placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
@@ -197,7 +191,6 @@ function App() {
             </div>
           )}
 
-          {/* CALC VIEW */}
           {mode === 'calc' && (
             <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
               <div className="screen">{display}</div>
@@ -229,7 +222,6 @@ function App() {
             </div>
           )}
 
-          {/* FLIP VIEW */}
           {mode === 'flip' && (
             <div className="flip-cont">
               <div className="label">{t[lang].buy}</div>
