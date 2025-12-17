@@ -14,17 +14,14 @@ function App() {
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
   
-  // Донат
   const [isDonating, setIsDonating] = useState(false)
-  const [donateAmount, setDonateAmount] = useState('') // Сумма доната
+  const [donateAmount, setDonateAmount] = useState('')
 
-  // Flip
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
   const [feeType, setFeeType] = useState('std') 
   const [customFee, setCustomFee] = useState('')
 
-  // Calc
   const [display, setDisplay] = useState('0')
   const [waiting, setWaiting] = useState(false)
   const [op, setOp] = useState(null)
@@ -35,56 +32,61 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
+      // Включаем свайп закрытия (опционально)
+      window.Telegram.WebApp.enableClosingConfirmation();
+      
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      if (userLang === 'en') setLang('en');
+      else if (userLang === 'en') setLang('en');
     }
-    setTimeout(() => setLoading(false), 2500);
+    setTimeout(() => setLoading(false), 2000);
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  const openLink = (url) => {
-    if (window.Telegram?.WebApp) window.Telegram.WebApp.openLink(url);
-    else window.open(url, '_blank');
+  // --- УМНАЯ НАВИГАЦИЯ ---
+  const safeOpenLink = (url) => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+        // Если это ссылка на Telegram (канал, бот), открываем внутри
+        if (url.startsWith('https://t.me/')) {
+            tg.openTelegramLink(url);
+        } else {
+            // Внешняя ссылка (Safari)
+            tg.openLink(url);
+        }
+    } else {
+        window.open(url, '_blank');
+    }
   };
-  
-  // --- ФУНКЦИЯ ДОНАТА (С отправкой суммы) ---
+
+  // --- ДОНАТ ---
   const handleDonate = async () => {
-    // Если сумма не введена, используем 0.1 по умолчанию
-    const amountToSend = donateAmount && parseFloat(donateAmount) > 0 ? donateAmount : '0.1';
-    
+    const amount = donateAmount && parseFloat(donateAmount) > 0 ? donateAmount : '0.1';
     setIsDonating(true);
     try {
       const res = await fetch('/api/donate', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ amount: amountToSend })
+          method: 'POST', 
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ amount })
       });
-      
-      const contentType = res.headers.get("content-type");
-      if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Сервер не вернул JSON. API недоступно локально.");
-      }
-
       const data = await res.json();
       
       if (data.url) {
-        if (window.Telegram?.WebApp) window.Telegram.WebApp.openLink(data.url);
-        else window.location.href = data.url; 
+        // CryptoBot возвращает t.me ссылку - открываем внутри Телеграма!
+        safeOpenLink(data.url);
       } else {
-        alert(`Ошибка CryptoBot: ${data.error || 'Неизвестная ошибка'}`);
+        alert('Ошибка CryptoBot: ' + (data.error || 'Unknown'));
       }
     } catch (e) {
-      console.error(e);
-      alert(`Ошибка: ${e.message}`);
+      alert('Ошибка: ' + e.message);
     } finally {
       setIsDonating(false);
     }
   }
 
-  // CALC LOGIC
+  // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -103,7 +105,6 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP LOGIC
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -114,25 +115,26 @@ function App() {
 
   return (
     <>
-      {/* НОВЫЙ ФОН */}
-      <div className="bg-blobs-container">
-        <div className="bg-blob blob-1"></div>
-        <div className="bg-blob blob-2"></div>
-        <div className="bg-blob blob-3"></div>
+      {/* ФОН (Lava) */}
+      <div className="ambient-bg">
+        <div className="blob blob-1"></div>
+        <div className="blob blob-2"></div>
+        <div className="blob blob-3"></div>
       </div>
 
+      {/* SPLASH */}
       {loading && (
         <div className="splash">
-          <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
+           <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
             <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
             <defs>
               <linearGradient id="paint0_linear" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
                 <stop stopColor="#007AFF"/>
-                <stop offset="1" stopColor="#00F0FF"/>
+                <stop offset="1" stopColor="#BD00FF"/>
               </linearGradient>
               <linearGradient id="paint1_linear" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-                <stop stopColor="#00F0FF"/>
+                <stop stopColor="#00F2FF"/>
                 <stop offset="1" stopColor="#007AFF"/>
               </linearGradient>
             </defs>
@@ -141,7 +143,7 @@ function App() {
         </div>
       )}
 
-      {/* ОБЕРТКА ОСТРОВА СО СВЕЧЕНИЕМ */}
+      {/* ОСТРОВ */}
       <div className="island-wrapper">
         <div className="island-glow"></div>
         <div className="island">
@@ -159,11 +161,11 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
-          {/* SETTINGS MODAL (FIXED LAYOUT) */}
+          {/* SETTINGS POPUP */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
-                  <h3 style={{marginBottom:'20px', color:'white'}}>{t[lang].sets}</h3>
+                  <h3 style={{marginBottom:'20px', color:'white', textAlign:'center'}}>{t[lang].sets}</h3>
                   
                   <div className="lang-row">
                     <button className={`lang-chip ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
@@ -172,27 +174,30 @@ function App() {
                   </div>
 
                   <div className="menu-list">
-                    <button className="menu-btn" onClick={()=>openLink('https://t.me/mytoncalculator')}>
+                    <button className="menu-btn" onClick={()=>safeOpenLink('https://t.me/mytoncalculator')}>
                       <span>📢 {t[lang].news}</span>
                       <span style={{opacity:0.5}}>↗</span>
                     </button>
                     
-                    {/* ИНПУТ СУММЫ ДОНАТА */}
+                    {/* DONATE INPUT */}
                     <div style={{display:'flex', gap:'10px'}}>
-                        <input type="number" className="input" style={{marginBottom:0, flex:1, fontSize:'16px', padding:'12px'}} placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
-                        <button className="menu-btn gold" style={{flex:1, justifyContent:'center'}} onClick={handleDonate} disabled={isDonating}>
+                        <input type="number" className="input" style={{marginBottom:0, flex:1, fontSize:'16px', padding:'12px', textAlign:'left'}} 
+                               placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
+                        
+                        <button className="menu-btn gold" style={{flex:0.8, justifyContent:'center'}} onClick={handleDonate} disabled={isDonating}>
                           <span>{isDonating ? '...' : `⭐️ ${t[lang].donate}`}</span>
                         </button>
                     </div>
                   </div>
 
-                  <button className="btn" style={{borderRadius:'20px', fontSize:'16px', background:'rgba(255,255,255,0.1)', marginTop:'20px', width:'100%'}} onClick={()=>setShowSettings(false)}>
+                  <button className="btn" style={{borderRadius:'20px', fontSize:'18px', background:'rgba(255,255,255,0.08)', marginTop:'25px', width:'100%'}} onClick={()=>setShowSettings(false)}>
                     ✕
                   </button>
               </div>
             </div>
           )}
 
+          {/* CALC VIEW */}
           {mode === 'calc' && (
             <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
               <div className="screen">{display}</div>
@@ -224,6 +229,7 @@ function App() {
             </div>
           )}
 
+          {/* FLIP VIEW */}
           {mode === 'flip' && (
             <div className="flip-cont">
               <div className="label">{t[lang].buy}</div>
