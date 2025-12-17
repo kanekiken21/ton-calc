@@ -1,288 +1,290 @@
 import { useState, useEffect } from 'react'
 import './App.css'
 
-// ВСТРОЕННАЯ БАЗА ПОПУЛЯРНЫХ ГИФТОВ (Имитация сервера)
-const POPULAR_GIFTS = {
-  'pepe': { 
-    name: 'Plush Pepe', 
-    img: 'https://cache.tonapi.io/imgproxy/b2c5w1Q7Y_14K0-44e2-6d24.png', 
-    floor: '150 TON', 
-    link: 'https://getgems.io/collection/EQDnwd-3r6p_jJaO7beD_S_mS2AH65MZ7b1h1N3U7W_4r6p?filter=%7B%22attributes%22%3A%5B%7B%22trait_type%22%3A%22Name%22%2C%22value%22%3A%22Plush%20Pepe%22%7D%5D%7D'
-  },
-  'star': { 
-    name: 'Red Star', 
-    img: 'https://nft.ton.diamonds/nft/0/4/12/412.png', // Пример картинки звезды
-    floor: '450 TON', 
-    link: 'https://getgems.io/search?q=Red%20Star'
-  },
-  'duck': { 
-    name: 'Rubber Duck', 
-    img: 'https://cache.tonapi.io/imgproxy/XX_duck_image.png', // Заглушка, если нет
-    floor: '50 TON', 
-    link: 'https://getgems.io/search?q=Duck'
-  },
-  'cake': { 
-    name: 'Delicious Cake', 
-    img: 'https://em-content.zobj.net/source/apple/391/birthday-cake_1f382.png',
-    floor: '15 TON', 
-    link: 'https://getgems.io/search?q=Cake'
-  }
-};
-
 function App() {
-  const [loadingApp, setLoadingApp] = useState(true)
-  const [showSettings, setShowSettings] = useState(false)
+  // --- STATES ---
+  const [loading, setLoading] = useState(true)
+  const [onboardingStep, setOnboardingStep] = useState(0) // 0 = нет, 1-3 = шаги
+  const [tab, setTab] = useState('flip') // Текущая вкладка
+  const [showPrivacy, setShowPrivacy] = useState(false)
   
-  const [activeTab, setActiveTab] = useState('flip') 
+  // Data States
   const [tonPrice, setTonPrice] = useState(null)
-  const [isSpinning, setIsSpinning] = useState(false)
-
-  // Flip States
-  const [buyPrice, setBuyPrice] = useState('')
-  const [sellPrice, setSellPrice] = useState('')
-  const [royalty, setRoyalty] = useState('') 
-  const [flipProfit, setFlipProfit] = useState(null)
-
-  // Gifts States
-  const [giftQuery, setGiftQuery] = useState('')
-  const [giftResult, setGiftResult] = useState(null)
   
-  // Stars States
-  const [starsAmount, setStarsAmount] = useState('')
-  const [starsProfit, setStarsProfit] = useState(null)
+  // Flip
+  const [buy, setBuy] = useState('')
+  const [sell, setSell] = useState('')
+  const [royalty, setRoyalty] = useState('')
+  const [profit, setProfit] = useState(null)
+  
+  // Gifts
+  const [giftQ, setGiftQ] = useState('')
+  
+  // Stars
+  const [stars, setStars] = useState('')
+  const [starsRes, setStarsRes] = useState(null)
 
-  // Calc States
-  const [calcDisplay, setCalcDisplay] = useState('0')
-  const [waitingForSecond, setWaitingForSecond] = useState(false)
-  const [firstNum, setFirstNum] = useState(null)
-  const [operator, setOperator] = useState(null)
+  // Calc
+  const [calc, setCalc] = useState('0')
+  const [waitSec, setWaitSec] = useState(false)
+  const [fNum, setFNum] = useState(null)
+  const [op, setOp] = useState(null)
 
+  // --- INIT ---
   useEffect(() => {
-    // 1. Телеграм
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
-      window.Telegram.WebApp.setHeaderColor('#000000'); 
       window.Telegram.WebApp.expand();
+      window.Telegram.WebApp.setHeaderColor('#000000');
     }
-    // 2. Сплэш скрин (3 сек)
-    setTimeout(() => setLoadingApp(false), 3000);
-    fetchTonPrice();
+    
+    // Проверка первого входа
+    const visited = localStorage.getItem('v2_visit');
+    if (!visited) setOnboardingStep(1);
+    
+    setTimeout(() => setLoading(false), 2500);
+    fetchPrice();
   }, [])
 
-  const fetchTonPrice = () => {
-    setIsSpinning(true);
+  const fetchPrice = () => {
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
-      .then(res => res.json())
-      .then(data => { if(data.price) setTonPrice(parseFloat(data.price).toFixed(2)); })
-      .finally(() => setTimeout(() => setIsSpinning(false), 1000));
+      .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
+      .catch(() => setTonPrice('6.20')); // Фолбек
   }
 
   // --- LOGIC ---
-  const calculateFlip = () => {
-    const buy = buyPrice ? parseFloat(buyPrice) : 0;
-    const sell = sellPrice ? parseFloat(sellPrice) : 0;
-    const roy = royalty ? parseFloat(royalty) : 5;
-    if (!buy && !sell) return;
-    const totalFee = sell * ((5 + roy) / 100);
-    setFlipProfit((sell - totalFee - buy).toFixed(2));
+  const doFlip = () => {
+    const b = parseFloat(buy) || 0; const s = parseFloat(sell) || 0;
+    const r = royalty ? parseFloat(royalty) : 5;
+    const fee = s * ((5 + r) / 100);
+    setProfit((s - fee - b).toFixed(2));
   }
 
-  const calculateStars = () => {
-    const amount = starsAmount ? parseFloat(starsAmount) : 0;
-    setStarsProfit((amount * 0.0135).toFixed(2));
+  const doStars = () => {
+    const s = parseFloat(stars) || 0;
+    setStarsRes((s * 0.0135).toFixed(2)); // Курс вывода
   }
 
-  // --- УМНЫЙ ПОИСК ГИФТОВ ---
-  const handleGiftSearch = () => {
-    if (!giftQuery) return;
-    const q = giftQuery.toLowerCase().trim();
-    
-    // Проверяем нашу "Встроенную базу"
-    if (POPULAR_GIFTS[q]) {
-      setGiftResult(POPULAR_GIFTS[q]);
-      return;
-    }
-    
-    // Если не нашли в базе, показываем заглушку
-    setGiftResult({
-      name: "Поиск в Getgems...",
-      desc: "Нажми кнопку ниже, чтобы открыть маркет",
-      img: null,
-      link: `https://getgems.io/search?q=${giftQuery}`
-    });
+  const openSupport = () => window.open('https://t.me/euharbar', '_blank');
+
+  const searchGift = () => {
+    if(!giftQ) return;
+    // Умный поиск: если ввели "Pepe", ищем по атрибутам, иначе просто текст
+    const q = encodeURIComponent(giftQ);
+    window.open(`https://getgems.io/collection/EQDnwd-3r6p_jJaO7beD_S_mS2AH65MZ7b1h1N3U7W_4r6p?search=${q}`, '_blank');
   }
 
-  // --- CALC LOGIC ---
-  const inputDigit = (digit) => {
-    if (waitingForSecond) {
-      setCalcDisplay(String(digit));
-      setWaitingForSecond(false);
-    } else {
-      setCalcDisplay(calcDisplay === '0' ? String(digit) : calcDisplay + String(digit));
+  // Calc Logic
+  const num = (n) => {
+    if(waitSec) { setCalc(String(n)); setWaitSec(false); }
+    else setCalc(calc === '0' ? String(n) : calc + n);
+  }
+  const oper = (o) => {
+    const inp = parseFloat(calc);
+    if(fNum === null) setFNum(inp);
+    else if(op) {
+      const res = calcRes(fNum, inp, op);
+      setCalc(String(res).slice(0, 9)); setFNum(res);
     }
+    setWaitSec(true); setOp(o);
   }
-  const performOp = (nextOperator) => {
-    const inputValue = parseFloat(calcDisplay);
-    if (firstNum === null) { setFirstNum(inputValue); } 
-    else if (operator) {
-      const result = calculate(firstNum, inputValue, operator);
-      setCalcDisplay(String(result).slice(0, 10));
-      setFirstNum(result);
-    }
-    setWaitingForSecond(true); setOperator(nextOperator);
+  const calcRes = (a, b, o) => {
+    if(o==='+') return a+b; if(o==='-') return a-b;
+    if(o==='*') return a*b; if(o==='/') return a/b; return b;
   }
-  const calculate = (first, second, op) => {
-    if (op === '+') return first + second; if (op === '-') return first - second;
-    if (op === '*') return first * second; if (op === '/') return first / second;
-    return second;
+
+  // --- RENDER HELPERS ---
+  const finishOnboarding = () => {
+    localStorage.setItem('v2_visit', 'true');
+    setOnboardingStep(0);
   }
-  const resetCalc = () => { setCalcDisplay('0'); setFirstNum(null); setOperator(null); setWaitingForSecond(false); }
 
   return (
     <>
-      {/* 1. SPLASH SCREEN */}
-      {loadingApp && (
+      <div className="background-fx"></div>
+
+      {/* SPLASH */}
+      {loading && (
         <div className="splash-screen">
           <div className="splash-logo">💎</div>
-          <div className="splash-text">my TON Calculator</div>
+          <div className="splash-title">my TON Calculator</div>
         </div>
       )}
 
-      {/* 2. SETTINGS MODAL */}
-      {showSettings && (
-        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <h3 style={{marginBottom:'20px'}}>Настройки</h3>
-            <div className="menu-item" onClick={() => alert('Скоро: TON Connect!')}>
-              💎 Connect Wallet (Beta)
+      {/* ONBOARDING */}
+      {!loading && onboardingStep > 0 && (
+        <div className="onboarding">
+          {onboardingStep === 1 && (
+            <div className="guide-step">
+              <div className="guide-icon">👋</div>
+              <div className="guide-title">Привет!</div>
+              <div className="guide-text">Это твой личный инструмент для заработка в TON.</div>
+              <button className="main-btn" onClick={() => setOnboardingStep(2)}>Далее</button>
             </div>
-            <div className="menu-item">📄 Privacy Policy</div>
-            <div className="menu-item">💬 Support</div>
-            <button className="action-btn" style={{background:'#333', marginTop:'20px'}} onClick={() => setShowSettings(false)}>Закрыть</button>
+          )}
+          {onboardingStep === 2 && (
+            <div className="guide-step">
+              <div className="guide-icon">🚀</div>
+              <div className="guide-title">Всё под рукой</div>
+              <div className="guide-text">Считай профит с перепродажи NFT (Flip) и выводи Звезды выгодно.</div>
+              <button className="main-btn" onClick={() => setOnboardingStep(3)}>Далее</button>
+            </div>
+          )}
+          {onboardingStep === 3 && (
+            <div className="guide-step">
+              <div className="guide-icon">🎁</div>
+              <div className="guide-title">Гифты и Курс</div>
+              <div className="guide-text">Следи за ценой TON и ищи редкие подарки.</div>
+              <button className="main-btn" onClick={finishOnboarding}>Начать!</button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* PRIVACY MODAL */}
+      {showPrivacy && (
+        <div className="modal" onClick={() => setShowPrivacy(false)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()}>
+            <h2>Privacy Policy</h2>
+            <p>1. Мы не храним ваши данные.<br/>2. Все расчеты происходят на вашем устройстве.<br/>3. Мы используем публичные API (Binance) для получения курса.<br/><br/>Contact: @euharbar</p>
+            <button className="main-btn" style={{padding:'10px', marginTop:'10px'}} onClick={() => setShowPrivacy(false)}>Close</button>
           </div>
         </div>
       )}
 
-      {/* 3. MAIN APP */}
-      <div className="app-container">
-        <div className="glass-card">
+      {/* MAIN APP */}
+      {!loading && (
+        <div className="app-content">
           
           {/* HEADER */}
-          <div className="app-header">
-             <div className="price-badge fade-in">
-               <span>💎 1 TON ≈ {tonPrice ? `$${tonPrice}` : '...'}</span>
-               <button onClick={fetchTonPrice} className={`refresh-btn ${isSpinning ? 'spinning' : ''}`}>🔄</button>
-             </div>
-             <button className="settings-btn" onClick={() => setShowSettings(true)}>⚙️</button>
+          <div className="header">
+            <div className="header-title">
+              💎 {tonPrice ? `$${tonPrice}` : '...'}
+            </div>
+            <div style={{display:'flex', gap:'10px'}}>
+               <button className="header-btn" onClick={() => setShowPrivacy(true)}>🛡️</button>
+               <button className="header-btn" onClick={openSupport}>💬</button>
+            </div>
           </div>
 
-          {/* TABS */}
-          <div className="tabs">
-            <button className={`tab-btn ${activeTab === 'flip' ? 'active' : ''}`} onClick={() => setActiveTab('flip')}>Flip</button>
-            <button className={`tab-btn ${activeTab === 'gifts' ? 'active' : ''}`} onClick={() => setActiveTab('gifts')}>Gifts</button>
-            <button className={`tab-btn ${activeTab === 'stars' ? 'active' : ''}`} onClick={() => setActiveTab('stars')}>Stars</button>
-            <button className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}>Calc</button>
-          </div>
-
-          {/* FLIP TAB */}
-          {activeTab === 'flip' && (
-            <div className="fade-in">
-              <div className="input-row">
-                 <div className="input-group" style={{flex:1}}>
-                   <label>Купил (TON)</label>
-                   <input type="number" className="input-field" placeholder="0" value={buyPrice} onChange={e => setBuyPrice(e.target.value)} />
-                 </div>
-                 <div className="input-group" style={{width:'40%'}}>
-                   <label onClick={() => alert('Комиссия автора (роялти). Стандарт 5%')}>Royalty <span className="info-icon">ⓘ</span></label>
-                   <input type="number" className="input-field" placeholder="5" value={royalty} onChange={e => setRoyalty(e.target.value)} />
-                 </div>
-              </div>
-              <div className="input-group">
-                <label>Продал (TON)</label>
-                <input type="number" className="input-field" placeholder="0" value={sellPrice} onChange={e => setSellPrice(e.target.value)} />
-              </div>
-              <button className="action-btn" onClick={calculateFlip}>Посчитать</button>
+          {/* FLIP SCREEN */}
+          {tab === 'flip' && (
+            <div className="card">
+              <h2 style={{marginTop:0}}>Flip Calculator ⚡️</h2>
               
-              {flipProfit && (
-                <div className="result-box">
-                  <div style={{color:'#aaa', fontSize:'13px'}}>Чистая прибыль</div>
-                  <div className="result-value" style={{color: parseFloat(flipProfit)>=0 ? '#32d74b':'#ff453a'}}>
-                    {parseFloat(flipProfit) > 0 ? '+' : ''}{flipProfit} TON
+              <div className="input-label">Купил за (TON)</div>
+              <input type="number" className="input-field" value={buy} onChange={e=>setBuy(e.target.value)} placeholder="0" />
+              
+              <div style={{display:'flex', gap:'10px', marginTop:'15px'}}>
+                <div style={{flex:1}}>
+                   <div className="input-label">Продаю за</div>
+                   <input type="number" className="input-field" value={sell} onChange={e=>setSell(e.target.value)} placeholder="0" />
+                </div>
+                <div style={{width:'35%'}}>
+                   <div className="input-label" onClick={()=>alert('Комиссия автора (обычно 5%)')}>Royalty ⓘ</div>
+                   <input type="number" className="input-field" value={royalty} onChange={e=>setRoyalty(e.target.value)} placeholder="5" style={{borderColor:'#007aff'}}/>
+                </div>
+              </div>
+
+              <button className="main-btn" onClick={doFlip}>Посчитать</button>
+
+              {profit && (
+                <div style={{marginTop:'20px', padding:'15px', background:'rgba(0,255,0,0.1)', borderRadius:'16px'}}>
+                  <div style={{fontSize:'12px', color:'#aaa'}}>Чистая прибыль</div>
+                  <div style={{fontSize:'32px', fontWeight:'bold', color:'#32d74b'}}>
+                    {parseFloat(profit)>0?'+':''}{profit} TON
                   </div>
-                  {tonPrice && <div style={{color:'#888', marginTop:'5px', fontSize:'14px'}}>≈ ${(parseFloat(flipProfit)*tonPrice).toFixed(2)}</div>}
+                  <div style={{color:'#888'}}>≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>
                 </div>
               )}
             </div>
           )}
 
-          {/* GIFTS TAB (С БАЗОЙ) */}
-          {activeTab === 'gifts' && (
-            <div className="fade-in">
-              <div className="input-group">
-                <label>Поиск (Pepe, Star, Cake...)</label>
-                <input type="text" className="input-field" placeholder="Название..." value={giftQuery} onChange={e => setGiftQuery(e.target.value)} />
+          {/* GIFTS SCREEN */}
+          {tab === 'gifts' && (
+            <div className="card">
+              <h2 style={{marginTop:0}}>Gifts Search 🎁</h2>
+              <p style={{fontSize:'13px', color:'#aaa'}}>Ищи подарки на Getgems</p>
+              
+              <div className="input-label">Название</div>
+              <input type="text" className="input-field" value={giftQ} onChange={e=>setGiftQ(e.target.value)} placeholder="Pepe, Star..." />
+              
+              <button className="main-btn" onClick={searchGift}>Найти на Getgems ↗</button>
+              
+              <div style={{marginTop:'20px', textAlign:'left', fontSize:'12px', color:'#666'}}>
+                * Откроет маркетплейс с фильтром по вашему запросу.
               </div>
-              <button className="action-btn" onClick={handleGiftSearch}>Найти</button>
+            </div>
+          )}
 
-              {giftResult && (
-                <div className="gift-card fade-in">
-                  {giftResult.img && <img src={giftResult.img} alt="gift" className="gift-img"/>}
-                  <div style={{fontSize:'20px', fontWeight:'bold'}}>{giftResult.name}</div>
-                  {giftResult.floor && <div style={{color:'#5ac8fa', marginTop:'5px'}}>Floor: {giftResult.floor}</div>}
-                  <div style={{color:'#888', fontSize:'13px', margin:'10px 0'}}>{giftResult.desc}</div>
-                  <a href={giftResult.link} target="_blank" rel="noreferrer" style={{color:'#007aff', textDecoration:'none', fontWeight:'600'}}>
-                    Смотреть на Getgems ↗
-                  </a>
+          {/* STARS SCREEN */}
+          {tab === 'stars' && (
+            <div className="card">
+              <h2 style={{marginTop:0}}>Stars Converter ⭐️</h2>
+              <div className="input-label">Количество звезд</div>
+              <input type="number" className="input-field" value={stars} onChange={e=>setStars(e.target.value)} placeholder="0" />
+              <button className="main-btn" onClick={doStars}>Конвертировать</button>
+              {starsRes && (
+                <div style={{marginTop:'20px', fontSize:'30px', fontWeight:'bold', color:'#ffd700'}}>
+                  ${starsRes}
                 </div>
               )}
             </div>
           )}
 
-          {/* STARS TAB */}
-          {activeTab === 'stars' && (
-            <div className="fade-in">
-              <div className="input-group">
-                <label>Звезд ⭐️</label>
-                <input type="number" className="input-field" placeholder="0" value={starsAmount} onChange={e => setStarsAmount(e.target.value)} />
-              </div>
-              <button className="action-btn" onClick={calculateStars}>Конвертировать</button>
-              {starsProfit && (
-                <div className="result-box" style={{background:'rgba(255, 200, 0, 0.1)'}}>
-                   <div style={{color:'#aaa', fontSize:'13px'}}>В долларах</div>
-                   <div className="result-value" style={{color:'#ffcc00'}}>${starsProfit}</div>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* CALC TAB (IOS) */}
-          {activeTab === 'system' && (
-            <div className="fade-in">
-              <div className="calc-screen">{calcDisplay}</div>
+          {/* CALCULATOR SCREEN */}
+          {tab === 'calc' && (
+            <div className="card" style={{padding:'20px'}}>
+              <div className="calc-display">{calc}</div>
               <div className="calc-grid">
-                <button className="calc-btn blue" onClick={resetCalc}><span>C</span></button>
-                <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)*-1))}><span>+/-</span></button>
-                <button className="calc-btn blue" onClick={() => setCalcDisplay(String(parseFloat(calcDisplay)/100))}><span>%</span></button>
-                <button className="calc-btn primary" onClick={() => performOp('/')}><span>÷</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(7)}><span>7</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(8)}><span>8</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(9)}><span>9</span></button>
-                <button className="calc-btn primary" onClick={() => performOp('*')}><span>×</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(4)}><span>4</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(5)}><span>5</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(6)}><span>6</span></button>
-                <button className="calc-btn primary" onClick={() => performOp('-')}><span>−</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(1)}><span>1</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(2)}><span>2</span></button>
-                <button className="calc-btn" onClick={() => inputDigit(3)}><span>3</span></button>
-                <button className="calc-btn primary" onClick={() => performOp('+')}><span>+</span></button>
-                <button className="calc-btn zero" onClick={() => inputDigit(0)}><span>0</span></button>
-                <button className="calc-btn" onClick={() => { if(!calcDisplay.includes('.')) setCalcDisplay(calcDisplay+'.') }}><span>.</span></button>
-                <button className="calc-btn primary" onClick={() => performOp('=')}><span>=</span></button>
+                <button className="calc-btn op" onClick={()=>setCalc('0')}>C</button>
+                <button className="calc-btn op" onClick={()=>setCalc(String(parseFloat(calc)*-1))}>+/-</button>
+                <button className="calc-btn op" onClick={()=>setCalc(String(parseFloat(calc)/100))}>%</button>
+                <button className="calc-btn op" onClick={()=>oper('/')}>÷</button>
+                
+                <button className="calc-btn" onClick={()=>num(7)}>7</button>
+                <button className="calc-btn" onClick={()=>num(8)}>8</button>
+                <button className="calc-btn" onClick={()=>num(9)}>9</button>
+                <button className="calc-btn op" onClick={()=>oper('*')}>×</button>
+                
+                <button className="calc-btn" onClick={()=>num(4)}>4</button>
+                <button className="calc-btn" onClick={()=>num(5)}>5</button>
+                <button className="calc-btn" onClick={()=>num(6)}>6</button>
+                <button className="calc-btn op" onClick={()=>oper('-')}>−</button>
+                
+                <button className="calc-btn" onClick={()=>num(1)}>1</button>
+                <button className="calc-btn" onClick={()=>num(2)}>2</button>
+                <button className="calc-btn" onClick={()=>num(3)}>3</button>
+                <button className="calc-btn op" onClick={()=>oper('+')}>+</button>
+                
+                <button className="calc-btn zero" onClick={()=>num(0)}>0</button>
+                <button className="calc-btn" onClick={()=>{if(!calc.includes('.'))setCalc(calc+'.')}}>.</button>
+                <button className="calc-btn eq" onClick={()=>oper('=')}>=</button>
               </div>
             </div>
           )}
+
         </div>
+      )}
+
+      {/* BOTTOM NAVIGATION BAR */}
+      <div className="bottom-nav">
+        <button className={`nav-item ${tab==='flip'?'active':''}`} onClick={()=>setTab('flip')}>
+          <div className="nav-icon">⚡️</div>
+          <div>Flip</div>
+        </button>
+        <button className={`nav-item ${tab==='gifts'?'active':''}`} onClick={()=>setTab('gifts')}>
+          <div className="nav-icon">🎁</div>
+          <div>Gifts</div>
+        </button>
+        <button className={`nav-item ${tab==='stars'?'active':''}`} onClick={()=>setTab('stars')}>
+          <div className="nav-icon">⭐️</div>
+          <div>Stars</div>
+        </button>
+        <button className={`nav-item ${tab==='calc'?'active':''}`} onClick={()=>setTab('calc')}>
+          <div className="nav-icon">🔢</div>
+          <div>Calc</div>
+        </button>
       </div>
     </>
   )
