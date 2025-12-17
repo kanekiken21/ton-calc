@@ -1,133 +1,210 @@
 :root {
   --bg: #000000;
-  --glass: rgba(28, 28, 30, 0.6); /* Полупрозрачный черный */
-  --neon-blue: #007aff;
-  --neon-glow: 0 0 15px rgba(0, 122, 255, 0.4);
-  --text-white: #ffffff;
-  --text-gray: #8e8e93;
+  --primary: #007aff;
+  --primary-glow: rgba(0, 122, 255, 0.5);
+  --glass: rgba(20, 20, 20, 0.6);
+  --border: rgba(255, 255, 255, 0.08);
+  --text: #ffffff;
 }
 
-* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; }
 
 body {
   margin: 0; padding: 0;
   width: 100vw; height: 100vh;
   background: var(--bg);
-  color: var(--text-white);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
-  overflow: hidden; /* Запрет скролла */
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Roboto", sans-serif;
+  overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
 
-/* ФОН (Градиент) */
-body::before {
-  content: ''; position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-  background: radial-gradient(circle at 50% 60%, #111827, #000000 50%);
+/* --- ЖИВОЙ ФОН (Deep Space) --- */
+.bg-fx {
+  position: fixed; inset: -50%;
+  background: 
+    radial-gradient(circle at 50% 50%, rgba(0, 122, 255, 0.15), transparent 40%),
+    radial-gradient(circle at 20% 80%, rgba(100, 50, 255, 0.1), transparent 40%);
+  animation: rotateBg 20s infinite linear;
   z-index: -1;
 }
+@keyframes rotateBg { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 
-#root { width: 100%; height: 100%; display: flex; flex-direction: column; }
+#root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* --- ГАЙД (Всплывашка) --- */
-.guide-overlay {
-  position: fixed; inset: 0; z-index: 999;
-  background: rgba(0,0,0,0.8); backdrop-filter: blur(10px);
-  display: flex; justify-content: center; align-items: center;
-}
-.guide-card {
-  background: #1c1c1e; width: 85%; padding: 30px; border-radius: 24px;
-  text-align: center; border: 1px solid #333;
-  animation: popUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-}
-.guide-icon { font-size: 50px; margin-bottom: 15px; }
-.guide-btn {
-  background: var(--neon-blue); color: white; border: none;
-  width: 100%; padding: 14px; border-radius: 14px;
-  font-size: 16px; font-weight: 600; margin-top: 20px;
-  box-shadow: var(--neon-glow);
+/* --- ГЛАВНЫЙ КОНТЕЙНЕР (МОБИЛЬНЫЙ ВИД) --- */
+.mobile-wrapper {
+  width: 100%; height: 100%;
+  max-width: 350px; /* ЖЕСТКИЙ ЛИМИТ ШИРИНЫ */
+  max-height: 800px;
+  display: flex; flex-direction: column;
+  position: relative;
+  padding: 10px;
 }
 
 /* --- HEADER --- */
 .header {
-  height: 60px; display: flex; justify-content: space-between; align-items: center;
-  padding: 0 20px; z-index: 10;
-}
-.price-tag {
-  font-size: 13px; color: var(--neon-blue); font-weight: 600;
-  background: rgba(0, 122, 255, 0.1); padding: 5px 10px; border-radius: 12px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 15px 10px; margin-bottom: 10px;
+  animation: slideDown 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-/* ПЕРЕКЛЮЧАТЕЛЬ */
-.tabs {
-  background: rgba(118, 118, 128, 0.24); padding: 2px; border-radius: 8px; display: flex;
+.price-pill {
+  font-size: 13px; font-weight: 600; color: #5ac8fa;
+  background: rgba(0, 122, 255, 0.15); padding: 6px 12px; border-radius: 20px;
+  border: 1px solid rgba(0, 122, 255, 0.2);
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.1);
+}
+
+.help-btn {
+  background: none; border: none; font-size: 20px; cursor: pointer;
+  transition: transform 0.2s;
+}
+.help-btn:active { transform: scale(0.8); }
+
+/* --- ПЕРЕКЛЮЧАТЕЛЬ (TABS) --- */
+.tabs-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(20px);
+  padding: 4px; border-radius: 16px;
+  display: flex; margin: 0 10px 20px 10px;
+  border: 1px solid var(--border);
+  animation: fadeIn 0.6s ease;
 }
 .tab {
-  border: none; background: none; color: #aaa; padding: 6px 12px;
-  font-size: 13px; font-weight: 500; border-radius: 6px; transition: 0.2s;
+  flex: 1; border: none; background: none; color: #888;
+  padding: 10px; font-size: 14px; font-weight: 600;
+  border-radius: 12px; transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  cursor: pointer; position: relative; overflow: hidden;
 }
-.tab.active { background: #636366; color: white; }
+.tab.active {
+  background: rgba(255, 255, 255, 0.1); color: white;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  text-shadow: 0 0 10px rgba(255,255,255,0.4);
+}
+/* Эффект блика при нажатии */
+.tab::after {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 0%, transparent 60%);
+  opacity: 0; transform: scale(0.5); transition: 0.3s;
+}
+.tab:active::after { opacity: 1; transform: scale(1); }
 
-/* --- CONTENT --- */
+
+/* --- CALCULATOR UI (СУПЕР КОМПАКТ) --- */
+.calc-container {
+  flex: 1; display: flex; flex-direction: column; justify-content: flex-end;
+  padding-bottom: 20px;
+  animation: slideUp 0.4s ease;
+}
+
 .screen {
-  flex: 1; display: flex; flex-direction: column;
-  justify-content: flex-end; /* Контент прижат к низу */
-  padding-bottom: 20px; width: 100%; max-width: 420px; margin: 0 auto;
+  text-align: right; padding: 0 15px; margin-bottom: 15px;
+  font-size: 60px; font-weight: 200; letter-spacing: -2px;
+  color: white; text-shadow: 0 0 20px rgba(255,255,255,0.1);
+  white-space: nowrap; overflow: hidden;
 }
 
-/* --- CALCULATOR --- */
-.calc-display {
-  width: 100%; padding: 0 25px; text-align: right;
-  font-size: 65px; font-weight: 200; color: white;
-  margin-bottom: 20px; letter-spacing: -2px;
-  overflow: hidden; white-space: nowrap;
-}
-
-.calc-grid {
+.keypad {
   display: grid; grid-template-columns: repeat(4, 1fr);
-  gap: 12px; padding: 0 15px;
+  gap: 10px; padding: 0 10px;
 }
 
 .btn {
-  /* Автоматическая высота кнопок, чтобы влезли в экран */
-  height: clamp(55px, 16vw, 75px); 
-  border-radius: 50%; border: none;
-  font-size: 26px; color: white; cursor: pointer;
-  background: rgba(255, 255, 255, 0.08); /* Стекло */
-  display: flex; justify-content: center; align-items: center;
-  transition: 0.1s;
+  aspect-ratio: 1; border-radius: 50%; border: none;
+  font-size: 24px; color: white; cursor: pointer;
+  background: rgba(255, 255, 255, 0.06); /* Темное стекло */
+  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 }
-.btn:active { background: rgba(255, 255, 255, 0.2); }
 
-/* Цвета кнопок */
-.btn.gray { background: #a5a5a5; color: black; font-weight: 500; }
-.btn.blue { background: rgba(0, 122, 255, 0.15); color: #5ac8fa; }
-.btn.neon { 
-  background: var(--neon-blue); 
-  box-shadow: var(--neon-glow);
+.btn:active {
+  transform: scale(0.9);
+  background: rgba(255, 255, 255, 0.15);
 }
-.btn.zero { grid-column: span 2; border-radius: 40px; justify-content: flex-start; padding-left: 30px; }
 
-/* --- FLIP --- */
+/* Цветные кнопки */
+.btn.blue { 
+  color: #5ac8fa; background: rgba(0, 122, 255, 0.15); 
+}
+.btn.blue:active { 
+  background: rgba(0, 122, 255, 0.3); box-shadow: 0 0 15px var(--primary-glow);
+}
+
+.btn.neon {
+  background: var(--primary);
+  box-shadow: 0 0 15px var(--primary-glow);
+}
+.btn.neon:active {
+  transform: scale(0.85); box-shadow: 0 0 5px var(--primary-glow);
+}
+
+.btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 28px; }
+
+
+/* --- FLIP UI --- */
 .flip-card {
-  margin: 20px; padding: 25px;
-  background: var(--glass); border-radius: 24px;
-  border: 1px solid var(--glass-border);
+  background: rgba(30, 30, 30, 0.6);
+  backdrop-filter: blur(30px); border: 1px solid var(--border);
+  border-radius: 28px; padding: 25px; margin: 10px;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.input-label { 
+  font-size: 11px; color: #888; text-transform: uppercase; 
+  font-weight: 700; margin-bottom: 8px; margin-left: 5px; letter-spacing: 0.5px;
+}
+.glass-input {
+  width: 100%; padding: 14px 18px;
+  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 16px; color: white; font-size: 20px; outline: none;
+  transition: 0.3s;
+}
+.glass-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 20px rgba(0, 122, 255, 0.2);
+  background: rgba(0,0,0,0.5);
+}
+
+.result-area {
+  margin-top: 20px; padding: 20px;
+  background: rgba(0, 255, 100, 0.05);
+  border-radius: 20px; border: 1px solid rgba(0, 255, 100, 0.1);
+  text-align: center;
+  animation: slideUp 0.3s ease;
+}
+.res-main { font-size: 32px; font-weight: 800; color: #32d74b; text-shadow: 0 0 20px rgba(50,215,75,0.3); }
+.res-sub { color: #888; font-size: 13px; margin-top: 5px; }
+
+
+/* --- MODAL (GUIDE & INFO) --- */
+.modal-overlay {
+  position: fixed; inset: 0; z-index: 2000;
+  background: rgba(0,0,0,0.85); backdrop-filter: blur(15px);
+  display: flex; justify-content: center; align-items: center;
   animation: fadeIn 0.3s;
 }
-
-.label { font-size: 11px; color: var(--text-gray); margin-bottom: 6px; text-transform: uppercase; font-weight: 700; }
-.input {
-  width: 100%; padding: 14px; margin-bottom: 15px;
-  background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; color: white; font-size: 20px; outline: none;
+.modal-card {
+  width: 80%; background: #151517; padding: 30px 20px;
+  border-radius: 30px; border: 1px solid #333; text-align: center;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+  animation: popIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
-.input:focus { border-color: var(--neon-blue); }
+.modal-icon { font-size: 50px; margin-bottom: 15px; filter: drop-shadow(0 0 20px rgba(255,255,255,0.2)); }
+.modal-h { font-size: 20px; font-weight: 700; color: white; margin-bottom: 10px; }
+.modal-p { font-size: 15px; color: #aaa; line-height: 1.5; margin-bottom: 25px; }
 
-.profit-box {
-  margin-top: 15px; padding-top: 15px; border-top: 1px solid rgba(255,255,255,0.1); text-align: center;
+.modal-btn {
+  background: var(--primary); color: white; border: none;
+  width: 100%; padding: 15px; border-radius: 16px;
+  font-size: 16px; font-weight: 600; cursor: pointer;
+  box-shadow: 0 0 20px var(--primary-glow);
+  transition: transform 0.1s;
 }
-.val { font-size: 32px; font-weight: 700; color: #32d74b; text-shadow: 0 0 15px rgba(50,215,75,0.2); }
-.sub { font-size: 13px; color: var(--text-gray); margin-top: 5px; }
+.modal-btn:active { transform: scale(0.95); }
 
-@keyframes popUp { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+/* --- ANIMATIONS --- */
+@keyframes slideDown { from { transform: translateY(-20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
