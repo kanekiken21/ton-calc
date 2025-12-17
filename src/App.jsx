@@ -5,13 +5,11 @@ function App() {
   const [mode, setMode] = useState('calc') 
   const [tonPrice, setTonPrice] = useState(null)
 
-  // Flip Logic
+  // Flip State
   const [buy, setBuy] = useState('')
   const [sell, setSell] = useState('')
-  const [feeType, setFeeType] = useState('standard') // standard (10%) | custom
-  const [customFee, setCustomFee] = useState('')
-
-  // Calc Logic
+  
+  // Calc State
   const [display, setDisplay] = useState('0')
   const [waiting, setWaiting] = useState(false)
   const [op, setOp] = useState(null)
@@ -55,92 +53,77 @@ function App() {
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
-    
-    let feePercent = 10; // Стандарт: 5% + 5%
-    if (feeType === 'custom') feePercent = parseFloat(customFee) || 0;
-
-    const profitVal = s * (1 - feePercent/100) - b;
-    return profitVal.toFixed(2);
+    return (s * 0.90 - b).toFixed(2); // 10% fee
   }
   const profit = getProfit();
 
   return (
     <>
-      <div className="background-fx"></div>
+      <div className="bg-anim"></div>
 
-      <div className="app-card">
+      <div className="island">
         
         {/* HEADER */}
         <div className="header">
-          <div style={{fontWeight:'800', fontSize:'18px'}}>TON Tools</div>
-          <div className="price-pill" onClick={fetchPrice}>
-            💎 ${tonPrice || '...'} 
-            <span className="refresh-icon">⚡️</span>
+          <div className="app-name">TON Calc</div>
+          <div className="ton-badge" onClick={fetchPrice}>
+            💎 ${tonPrice || '...'} ⚡️
           </div>
         </div>
 
         {/* TABS */}
         <div className="tabs">
-          <button className={`tab-btn ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Калькулятор</button>
-          <button className={`tab-btn ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip NFT</button>
+          <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Calc</button>
+          <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip NFT</button>
         </div>
 
-        {/* --- CALC MODE --- */}
+        {/* --- CALC --- */}
         {mode === 'calc' && (
-          <div style={{animation:'fadeIn 0.3s'}}>
-            <div className="calc-screen">{display}</div>
-            <div className="calc-grid">
+          <div style={{animation:'slideUp 0.3s'}}>
+            <div className="screen">{display}</div>
+            <div className="keypad">
               <button className="btn" onClick={reset} style={{color:'#ff453a'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
-              <button className="btn blue" onClick={()=>operator('/')}>÷</button>
+              <button className="btn op" onClick={()=>operator('/')}>÷</button>
               
               <button className="btn" onClick={()=>num(7)}>7</button>
               <button className="btn" onClick={()=>num(8)}>8</button>
               <button className="btn" onClick={()=>num(9)}>9</button>
-              <button className="btn blue" onClick={()=>operator('x')}>×</button>
+              <button className="btn op" onClick={()=>operator('x')}>×</button>
               
               <button className="btn" onClick={()=>num(4)}>4</button>
               <button className="btn" onClick={()=>num(5)}>5</button>
               <button className="btn" onClick={()=>num(6)}>6</button>
-              <button className="btn blue" onClick={()=>operator('-')}>−</button>
+              <button className="btn op" onClick={()=>operator('-')}>−</button>
               
               <button className="btn" onClick={()=>num(1)}>1</button>
               <button className="btn" onClick={()=>num(2)}>2</button>
               <button className="btn" onClick={()=>num(3)}>3</button>
-              <button className="btn blue" onClick={()=>operator('+')}>+</button>
+              <button className="btn op" onClick={()=>operator('+')}>+</button>
               
               <button className="btn zero" onClick={()=>num(0)}>0</button>
               <button className="btn" onClick={()=>{if(!display.includes('.'))setDisplay(display+'.')}}>.</button>
-              <button className="btn neon" onClick={()=>operator('=')}>=</button>
+              <button className="btn eq" onClick={()=>operator('=')}>=</button>
             </div>
           </div>
         )}
 
-        {/* --- FLIP MODE --- */}
+        {/* --- FLIP --- */}
         {mode === 'flip' && (
-          <div style={{animation:'fadeIn 0.3s'}}>
-            <div className="input-label">Купил (TON)</div>
-            <input type="number" className="input-field" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
+          <div style={{animation:'slideUp 0.3s'}}>
+            <div className="label">Купил (TON)</div>
+            <input type="number" className="input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
             
-            <div className="input-label">Продал (TON)</div>
-            <input type="number" className="input-field" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
-
-            <div className="input-label">Комиссия</div>
-            <div className="fee-selector">
-              <button className={`fee-btn ${feeType==='standard'?'active':''}`} onClick={()=>setFeeType('standard')}>Getgems (10%)</button>
-              <button className={`fee-btn ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>Своя (%)</button>
-            </div>
-
-            {feeType === 'custom' && (
-               <input type="number" className="input-field" placeholder="Например: 5" value={customFee} onChange={e=>setCustomFee(e.target.value)} style={{marginTop:'-10px'}}/>
-            )}
+            <div className="label">Продал (TON)</div>
+            <input type="number" className="input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
 
             {profit !== null && (
-              <div className="result-area">
+              <div className="result-card">
                 <div style={{fontSize:'12px', color:'#aaa'}}>Чистая прибыль</div>
-                <div className="res-main">{parseFloat(profit)>0?'+':''}{profit} TON</div>
-                {tonPrice && <div className="res-sub">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
+                <div className="res-val">{parseFloat(profit)>0?'+':''}{profit} TON</div>
+                {tonPrice && <div style={{color:'#888', marginTop:'5px'}}>≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
+                <div className="res-info">Учтена комиссия 10% (Market + Royalty)</div>
               </div>
             )}
           </div>
