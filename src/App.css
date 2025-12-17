@@ -1,4 +1,4 @@
-/* Основной фон приложения (Полностью черный для контраста) */
+/* --- ОСНОВА --- */
 body {
   margin: 0;
   display: flex;
@@ -8,7 +8,7 @@ body {
   background: #000000;
   color: white;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  overflow: hidden; /* Чтобы не скроллилось на телефоне */
+  overflow: hidden;
 }
 
 #root {
@@ -19,32 +19,32 @@ body {
   align-items: center;
 }
 
-/* Улучшенный эффект матового стекла (iOS style) */
+/* Карточка приложения */
 .glass-card {
-  background: rgba(40, 40, 40, 0.75); /* Более прозрачный темный фон */
-  backdrop-filter: blur(25px) saturate(180%); /* Сильное размытие "фрост" */
-  -webkit-backdrop-filter: blur(25px) saturate(180%);
-  border-radius: 32px; /* Сильное скругление углов */
-  border: 1px solid rgba(255, 255, 255, 0.12); /* Тонкая светлая рамка */
+  background: rgba(20, 20, 25, 0.85); /* Темно-синий оттенок */
+  backdrop-filter: blur(30px) saturate(150%);
+  -webkit-backdrop-filter: blur(30px) saturate(150%);
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
   padding: 25px;
   width: 92%;
   max-width: 380px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5); /* Глубокая тень */
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
   text-align: center;
   box-sizing: border-box;
 }
 
-/* --- ИСПРАВЛЕННЫЙ Стиль iOS Калькулятора --- */
+/* --- КАЛЬКУЛЯТОР (TON STYLE) --- */
 .calc-screen {
   text-align: right;
-  font-size: 60px; /* Крупные цифры */
-  font-weight: 200;
-  margin-bottom: 15px;
-  padding: 0 5px;
+  font-size: 55px;
+  font-weight: 300;
+  margin-bottom: 20px;
+  padding: 0 10px;
   height: 70px;
+  color: #ffffff;
+  text-shadow: 0 0 20px rgba(255, 255, 255, 0.2); /* Легкое свечение цифр */
   overflow: hidden;
-  color: white;
-  letter-spacing: -2px;
 }
 
 .calc-grid {
@@ -53,24 +53,21 @@ body {
   gap: 12px;
 }
 
-/* Базовый стиль кнопки - делаем ее жестко круглой через хак */
+/* Базовая кнопка (Стекло) */
 .calc-btn {
   width: 100%;
   height: 0;
-  padding-bottom: 100%; /* Хак для идеального круга */
+  padding-bottom: 100%;
   border-radius: 50%;
-  border: none;
-  font-size: 28px;
-  font-weight: 400;
+  border: 1px solid rgba(255, 255, 255, 0.05); /* Тонкая обводка */
+  font-size: 26px;
   color: white;
-  background-color: #333333; /* Темно-серый по умолчанию */
+  background: rgba(255, 255, 255, 0.03); /* Почти прозрачная */
   cursor: pointer;
-  position: relative; /* Для центрирования текста */
-  transition: filter 0.2s;
-  -webkit-tap-highlight-color: transparent; /* Убирает синий блик на мобилках */
+  position: relative;
+  transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
-/* Центрируем цифру внутри круга */
 .calc-btn span {
   position: absolute;
   top: 50%;
@@ -79,91 +76,97 @@ body {
 }
 
 .calc-btn:active {
-  filter: brightness(1.5); /* Светлеет при нажатии */
+  background: rgba(255, 255, 255, 0.1);
+  transform: scale(0.95);
 }
 
-/* Оранжевые кнопки операций */
-.calc-btn.orange {
-  background-color: #ff9f0a;
-  font-size: 32px;
-  padding-bottom: 96%; /* Чуть корректируем высоту для иконок */
-}
-.calc-btn.orange:active {
-  background-color: #e58f09;
-  filter: none;
+/* Синие кнопки операций (TON Blue) */
+.calc-btn.blue {
+  background: rgba(0, 122, 255, 0.15); /* Прозрачный синий */
+  color: #3390ff;
+  border-color: rgba(0, 122, 255, 0.3);
 }
 
-/* Светло-серые кнопки (сверху) */
-.calc-btn.gray {
-  background-color: #a5a5a5;
-  color: black;
-}
-.calc-btn.gray:active {
-  background-color: #d9d9d9;
-  filter: none;
+.calc-btn.blue:active {
+  background: rgba(0, 122, 255, 0.3);
+  box-shadow: 0 0 15px rgba(0, 122, 255, 0.4);
 }
 
-/* Кнопка "0" широкая */
+/* Кнопка РАВНО (Яркая) */
+.calc-btn.primary {
+  background: linear-gradient(135deg, #007aff, #0051aa);
+  border: none;
+  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4); /* Сильное свечение */
+}
+
+.calc-btn.primary:active {
+  transform: scale(0.92);
+  box-shadow: 0 2px 8px rgba(0, 122, 255, 0.6);
+}
+
+/* Кнопка "0" */
 .calc-btn.zero {
   grid-column: span 2;
-  padding-bottom: 48%; /* Половина высоты */
-  border-radius: 45px;
+  padding-bottom: 48%;
+  border-radius: 40px;
 }
-.calc-btn.zero span {
-  left: 25%; /* Сдвигаем ноль влево */
-}
+.calc-btn.zero span { left: 25%; }
 
-/* --- Остальные стили (оставляем как были, но чуть улучшаем) --- */
+/* --- ВКЛАДКИ И ПОЛЯ --- */
 .tabs {
   display: flex;
-  background: rgba(118, 118, 128, 0.24); /* iOS стиль фона вкладок */
-  border-radius: 10px;
-  padding: 3px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 14px;
+  padding: 4px;
   margin-bottom: 25px;
+  border: 1px solid rgba(255,255,255,0.05);
 }
 
 .tab-btn {
   flex: 1;
   background: transparent;
   border: none;
-  color: rgba(255, 255, 255, 0.6);
-  padding: 8px;
-  border-radius: 8px;
-  font-weight: 500;
-  font-size: 14px;
-  cursor: pointer;
-  transition: 0.2s;
+  color: #888;
+  padding: 10px;
+  border-radius: 10px;
+  font-weight: 600;
+  transition: 0.3s;
 }
 
 .tab-btn.active {
-  background: rgba(99, 99, 102, 0.8); /* Активная вкладка */
+  background: rgba(255, 255, 255, 0.1);
   color: white;
-  box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
+/* Поля ввода */
 .input-group { margin-bottom: 15px; text-align: left; }
-label { font-size: 12px; color: #aaa; margin-bottom: 5px; display: block; margin-left: 10px; }
+label { font-size: 13px; color: #8899a6; margin-bottom: 6px; display: block; margin-left: 5px; }
 .input-field {
-  width: 100%; padding: 12px 15px;
-  background: rgba(255, 255, 255, 0.1); /* Более светлые поля */
-  border: none;
-  border-radius: 12px;
+  width: 100%; padding: 14px;
+  background: rgba(0, 0, 0, 0.3);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
   color: white; font-size: 18px; outline: none; box-sizing: border-box;
 }
-.input-field::placeholder { color: #666; }
+.input-field:focus { border-color: #007aff; background: rgba(0, 0, 0, 0.5); }
 
+/* Большая кнопка действия */
 .action-btn {
-  background: #007aff; /* iOS синий */
-  border: none; padding: 14px; border-radius: 14px;
-  color: white; font-weight: 600; font-size: 17px;
+  background: linear-gradient(90deg, #007aff, #5ac8fa); /* TON Gradient */
+  border: none; padding: 16px; border-radius: 16px;
+  color: white; font-weight: 700; font-size: 17px;
   cursor: pointer; margin-top: 10px; width: 100%;
+  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.3);
 }
-.action-btn:active { opacity: 0.7; }
+.action-btn:active { opacity: 0.8; transform: scale(0.98); }
 
 .result-box {
-  margin-top: 20px; padding: 15px;
-  background: rgba(50, 215, 75, 0.1); border-radius: 12px;
+  margin-top: 20px; padding: 20px;
+  background: rgba(0, 255, 100, 0.05); 
+  border: 1px solid rgba(0, 255, 100, 0.2);
+  border-radius: 16px;
 }
-.result-value { font-size: 28px; font-weight: bold; color: #32d74b; }
-.fade-in { animation: fadeIn 0.3s ease; }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.result-value { font-size: 28px; font-weight: 800; color: #4ade80; }
+.fade-in { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
