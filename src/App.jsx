@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
+import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)' },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат', donatePlaceholder: 'Сума (TON)' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат', donatePlaceholder: 'Сума (TON)', wallet: 'Гаманець' }
 }
 
 function App() {
@@ -32,12 +33,11 @@ function App() {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
-      // Пытаемся блокировать скролл методами ТГ
       window.Telegram.WebApp.isVerticalSwipesEnabled = false; 
-
+      
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'uk') setLang('ua');
-      if (userLang === 'en') setLang('en');
+      else if (userLang === 'en') setLang('en');
     }
     setTimeout(() => setLoading(false), 2000);
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -45,7 +45,6 @@ function App() {
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // --- НАВИГАЦИЯ (МГНОВЕННАЯ) ---
   const safeOpenLink = (url) => {
     const tg = window.Telegram?.WebApp;
     if (tg && url.startsWith('https://t.me/')) {
@@ -57,7 +56,6 @@ function App() {
     }
   };
 
-  // --- ДОНАТ ---
   const handleDonate = async () => {
     const amount = donateAmount && parseFloat(donateAmount) > 0 ? donateAmount : '0.1';
     setIsDonating(true);
@@ -69,7 +67,6 @@ function App() {
       });
       const data = await res.json();
       if (data.url) {
-        // CryptoBot это ссылка t.me, поэтому открываем через openTelegramLink
         safeOpenLink(data.url);
       } else {
         alert('Ошибка CryptoBot: ' + (data.error || 'Unknown'));
@@ -81,7 +78,7 @@ function App() {
     }
   }
 
-  // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
+  // CALC LOGIC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -100,6 +97,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
+  // FLIP LOGIC
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -119,47 +117,19 @@ function App() {
       {loading && (
         <div className="splash">
            <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
-  {/* Морозное свечение (Filter Definition) */}
-  <defs>
-    <filter id="frostGlow" x="-50%" y="-50%" width="200%" height="200%">
-      <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
-      <feColorMatrix in="blur" type="matrix" values="0 0 0 0 0   0 0 0 0 0.7   0 0 0 0 1  0 0 0 1 0" result="frostBlue"/>
-      <feMerge>
-        <feMergeNode in="frostBlue" />
-        <feMergeNode in="SourceGraphic" />
-      </feMerge>
-    </filter>
-  </defs>
-
-  <g filter="url(#frostGlow)">
-    {/* Основной Кристалл */}
-    <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear_ny)"/>
-    <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear_ny)"/>
-    
-    {/* Снежинки (Круги) */}
-    <circle cx="50" cy="30" r="3" fill="white" opacity="0.8" />
-    <circle cx="150" cy="60" r="2.5" fill="white" opacity="0.7" />
-    <circle cx="100" cy="100" r="4" fill="white" opacity="0.9" />
-    <circle cx="30" cy="150" r="2" fill="white" opacity="0.6" />
-    <circle cx="170" cy="130" r="3.5" fill="white" opacity="0.8" />
-    <circle cx="80" cy="180" r="2" fill="white" opacity="0.7" />
-    <circle cx="120" cy="10" r="2.5" fill="white" opacity="0.8" />
-    <circle cx="10" cy="80" r="3" fill="white" opacity="0.6" />
-    <circle cx="190" cy="90" r="2" fill="white" opacity="0.7" />
-  </g>
-
-  {/* Градиенты (немного холоднее) */}
-  <defs>
-    <linearGradient id="paint0_linear_ny" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#007AFF"/>
-      <stop offset="1" stopColor="#80FFFF"/> {/* Более ледяной cyan */}
-    </linearGradient>
-    <linearGradient id="paint1_linear_ny" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
-      <stop stopColor="#80FFFF"/>
-      <stop offset="1" stopColor="#007AFF"/>
-    </linearGradient>
-  </defs>
-</svg>
+            <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear)"/>
+            <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear)"/>
+            <defs>
+              <linearGradient id="paint0_linear" x1="100" y1="0" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#007AFF"/>
+                <stop offset="1" stopColor="#BD00FF"/>
+              </linearGradient>
+              <linearGradient id="paint1_linear" x1="100" y1="100" x2="100" y2="200" gradientUnits="userSpaceOnUse">
+                <stop stopColor="#00F2FF"/>
+                <stop offset="1" stopColor="#007AFF"/>
+              </linearGradient>
+            </defs>
+          </svg>
           <div className="splash-text">my TON Calc</div>
         </div>
       )}
@@ -185,11 +155,17 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
+          {/* SETTINGS + WALLET CONNECT */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
-                  <h3 style={{marginBottom:'20px', color:'white', textAlign:'center'}}>{t[lang].sets}</h3>
+                  <h3 style={{marginBottom:'15px', color:'white', textAlign:'center'}}>{t[lang].sets}</h3>
                   
+                  {/* TON CONNECT BUTTON (Центральное место) */}
+                  <div style={{width:'100%', display:'flex', justifyContent:'center', marginBottom:'15px'}}>
+                    <TonConnectButton />
+                  </div>
+
                   <div className="lang-row">
                     <button className={`lang-chip ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
                     <button className={`lang-chip ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
@@ -212,7 +188,7 @@ function App() {
                     </div>
                   </div>
 
-                  <button className="btn" style={{borderRadius:'20px', fontSize:'18px', background:'rgba(255,255,255,0.08)', marginTop:'25px', width:'100%'}} onClick={()=>setShowSettings(false)}>
+                  <button className="btn" style={{borderRadius:'20px', fontSize:'18px', background:'rgba(255,255,255,0.08)', marginTop:'20px', width:'100%'}} onClick={()=>setShowSettings(false)}>
                     ✕
                   </button>
               </div>
