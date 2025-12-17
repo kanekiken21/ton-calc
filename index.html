@@ -8,11 +8,20 @@
     
     <title>my TON Calculator</title>
 
-    <script 
-      async 
-      src="https://tganalytics.xyz/index.js" 
-      onload="window.telegramAnalytics.init('eyJhcHBfbmFtZSI6Im15X3Rvbl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9teXRvbmNhbGN1bGF0b3JfYm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdG9uLWNhbGMudmVyY2VsLmFwcC8ifQ==!b4veLOsGUosJ8kAG08IxPb4jbi/ItY7BgPTwtFACAas=')"
-    ></script>
+    <script src="https://tganalytics.xyz/index.js"></script>
+
+    <script>
+      // Ждем полной загрузки страницы
+      window.addEventListener('load', function() {
+        if (window.telegramAnalytics) {
+          // Вставляем твой токен
+          window.telegramAnalytics.init('eyJhcHBfbmFtZSI6Im15X3Rvbl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9teXRvbmNhbGN1bGF0b3JfYm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdG9uLWNhbGMudmVyY2VsLmFwcC8ifQ==!b4veLOsGUosJ8kAG08IxPb4jbi/ItY7BgPTwtFACAas=');
+          console.log("Telegram Analytics initialized!");
+        } else {
+          console.error("Telegram Analytics script not found.");
+        }
+      });
+    </script>
 
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
   </head>
