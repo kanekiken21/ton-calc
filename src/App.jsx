@@ -5,15 +5,17 @@ function App() {
   const [mode, setMode] = useState('calc') 
   const [tonPrice, setTonPrice] = useState(null)
 
-  // Flip State
-  const [buy, setBuy] = useState('')
-  const [sell, setSell] = useState('')
-  
-  // Calc State
+  // Calc Logic
   const [display, setDisplay] = useState('0')
   const [waiting, setWaiting] = useState(false)
   const [op, setOp] = useState(null)
   const [memory, setMemory] = useState(null)
+
+  // Flip Logic
+  const [buy, setBuy] = useState('')
+  const [sell, setSell] = useState('')
+  const [feeType, setFeeType] = useState('std') // 'std' (10%) or 'custom'
+  const [customFee, setCustomFee] = useState('')
 
   useEffect(() => {
     if (window.Telegram?.WebApp) {
@@ -21,16 +23,13 @@ function App() {
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
     }
-    fetchPrice();
-  }, [])
-
-  const fetchPrice = () => {
+    // Binance API
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
-      .catch(() => setTonPrice('6.20'));
-  }
+      .catch(() => setTonPrice('6.50'));
+  }, [])
 
-  // --- CALC ---
+  // --- CALC LOGIC ---
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -40,7 +39,7 @@ function App() {
     if (memory === null) setMemory(val);
     else if (op) {
       const res = calc(memory, val, op);
-      setDisplay(String(res).slice(0, 9)); setMemory(res);
+      setDisplay(String(res).slice(0, 10)); setMemory(res);
     }
     setWaiting(true); setOp(o);
   }
@@ -49,40 +48,43 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // --- FLIP ---
+  // --- FLIP LOGIC ---
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
-    return (s * 0.90 - b).toFixed(2); // 10% fee
+    
+    // Если стандарт - 10% (5% маркет + 5% роялти). Если кастом - берем ввод
+    const feePercent = feeType === 'std' ? 10 : (parseFloat(customFee) || 0);
+    
+    const profitVal = s * (1 - feePercent/100) - b;
+    return profitVal.toFixed(2);
   }
   const profit = getProfit();
 
   return (
     <>
-      <div className="bg-anim"></div>
+      <div className="bg-space"></div>
 
-      <div className="island">
+      <div className="main-card">
         
         {/* HEADER */}
         <div className="header">
-          <div className="app-name">TON Calc</div>
-          <div className="ton-badge" onClick={fetchPrice}>
-            💎 ${tonPrice || '...'} ⚡️
-          </div>
+          <div style={{fontWeight:'800', fontSize:'16px'}}>TON Calc ⚡️</div>
+          <div className="price-pill">💎 ${tonPrice || '...'}</div>
         </div>
 
         {/* TABS */}
         <div className="tabs">
-          <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Calc</button>
+          <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>Калькулятор</button>
           <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>Flip NFT</button>
         </div>
 
-        {/* --- CALC --- */}
+        {/* --- CALC MODE --- */}
         {mode === 'calc' && (
-          <div style={{animation:'slideUp 0.3s'}}>
+          <div style={{animation:'popIn 0.3s'}}>
             <div className="screen">{display}</div>
             <div className="keypad">
-              <button className="btn" onClick={reset} style={{color:'#ff453a'}}>AC</button>
+              <button className="btn" onClick={reset} style={{color:'#ff4d4d'}}>AC</button>
               <button className="btn" onClick={invert}>+/-</button>
               <button className="btn" onClick={percent}>%</button>
               <button className="btn op" onClick={()=>operator('/')}>÷</button>
@@ -109,21 +111,34 @@ function App() {
           </div>
         )}
 
-        {/* --- FLIP --- */}
+        {/* --- FLIP MODE --- */}
         {mode === 'flip' && (
-          <div style={{animation:'slideUp 0.3s'}}>
+          <div style={{animation:'popIn 0.3s'}}>
             <div className="label">Купил (TON)</div>
             <input type="number" className="input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
             
             <div className="label">Продал (TON)</div>
             <input type="number" className="input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
 
+            <div className="label">Комиссия</div>
+            <div className="fees">
+              <div className={`fee-chip ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>
+                Getgems (10%)
+              </div>
+              <div className={`fee-chip ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>
+                Своя (%)
+              </div>
+            </div>
+
+            {feeType === 'custom' && (
+               <input type="number" className="input" placeholder="Например: 5" value={customFee} onChange={e=>setCustomFee(e.target.value)} style={{marginTop:'-5px'}} />
+            )}
+
             {profit !== null && (
               <div className="result-card">
-                <div style={{fontSize:'12px', color:'#aaa'}}>Чистая прибыль</div>
+                <div style={{fontSize:'12px', color:'#aaa'}}>Чистый профит</div>
                 <div className="res-val">{parseFloat(profit)>0?'+':''}{profit} TON</div>
-                {tonPrice && <div style={{color:'#888', marginTop:'5px'}}>≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
-                <div className="res-info">Учтена комиссия 10% (Market + Royalty)</div>
+                {tonPrice && <div className="res-sub">≈ ${(parseFloat(profit)*tonPrice).toFixed(2)}</div>}
               </div>
             )}
           </div>

@@ -1,153 +1,147 @@
 :root {
-  --bg-deep: #000000;
-  --glass: rgba(30, 30, 35, 0.85);
-  --glass-border: rgba(255, 255, 255, 0.08);
-  --neon: #007aff;
-  --neon-glow: 0 0 25px rgba(0, 122, 255, 0.6);
+  --bg-deep: #050505;
+  --neon-blue: #00f2ff; /* Кибер-голубой */
+  --neon-purple: #bd00ff;
+  --glass-btn: rgba(255, 255, 255, 0.05);
+  --glass-card: rgba(20, 20, 20, 0.6);
   --text: #ffffff;
 }
 
-/* ГЛАВНЫЙ ФИКС: Запрет выделения и тапов */
-* { 
-  box-sizing: border-box; margin: 0; padding: 0; 
-  -webkit-tap-highlight-color: transparent; 
-  outline: none;
-  user-select: none; -webkit-user-select: none; /* Запрет копирования */
-  touch-action: manipulation; /* Убирает задержку тапа */
-}
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; outline: none; user-select: none; }
 
 body {
-  width: 100vw; height: 100vh;
+  margin: 0; padding: 0; width: 100vw; height: 100vh;
   background: var(--bg-deep);
   color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Roboto", sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
   overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
 
-/* ФОН С ПЕРЕЛИВАМИ */
-.bg-anim {
-  position: absolute; top: -50%; left: -50%; width: 200%; height: 200%;
-  background: 
-    radial-gradient(circle at 30% 40%, rgba(0, 122, 255, 0.15), transparent 40%),
-    radial-gradient(circle at 70% 60%, rgba(100, 50, 255, 0.12), transparent 40%);
-  animation: bgSpin 15s infinite linear;
-  z-index: -1;
+/* ФОН (Космос) */
+.bg-space {
+  position: absolute; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(0, 100, 255, 0.15), transparent 60%);
+  animation: pulseBg 10s infinite alternate; z-index: -1;
 }
-@keyframes bgSpin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+@keyframes pulseBg { 0% { opacity: 0.5; transform: scale(1); } 100% { opacity: 1; transform: scale(1.1); } }
 
-#root { 
-  width: 100%; height: 100%; 
-  display: flex; justify-content: center; align-items: center; 
-}
+#root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* --- ОСТРОВ (ISLAND) - Фиксированная ширина --- */
-.island {
-  width: 320px; /* Идеально для всех экранов */
-  background: var(--glass);
+/* --- ГЛАВНЫЙ КОРПУС (ПУЛЬТ) --- */
+.main-card {
+  width: 340px; /* Фиксированная ширина */
+  background: var(--glass-card);
   backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1px solid var(--glass-border);
-  border-radius: 36px;
-  padding: 24px 20px; /* Внутренние отступы */
-  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 40px;
+  padding: 25px;
+  box-shadow: 
+    0 0 40px rgba(0, 0, 0, 0.8),
+    inset 0 0 0 1px rgba(255, 255, 255, 0.05);
   display: flex; flex-direction: column;
   position: relative;
-  overflow: hidden;
+  animation: floatUp 0.5s ease-out;
 }
+
+@keyframes floatUp { from { transform: translateY(50px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
 /* --- HEADER --- */
 .header {
   display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 20px; padding: 0 5px;
+  margin-bottom: 20px;
 }
-.app-name { font-weight: 800; font-size: 18px; letter-spacing: -0.5px; }
-.ton-badge {
-  font-size: 12px; font-weight: 700; color: #5ac8fa;
-  background: rgba(0, 122, 255, 0.15); padding: 6px 10px; border-radius: 12px;
-  border: 1px solid rgba(0, 122, 255, 0.2);
-  display: flex; align-items: center; gap: 5px; cursor: pointer;
+.price-pill {
+  font-size: 12px; font-weight: 700; color: var(--neon-blue);
+  background: rgba(0, 242, 255, 0.1); padding: 6px 12px; border-radius: 20px;
+  border: 1px solid rgba(0, 242, 255, 0.2);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
 }
-.ton-badge:active { transform: scale(0.95); }
 
-/* --- TABS (Переключатель) --- */
+/* --- TABS --- */
 .tabs {
-  background: rgba(0,0,0,0.3); padding: 4px; border-radius: 16px;
+  background: rgba(0,0,0,0.4); padding: 4px; border-radius: 16px;
   display: flex; margin-bottom: 20px;
 }
 .tab {
   flex: 1; border: none; background: none; color: #666;
-  padding: 10px; font-size: 13px; font-weight: 600; border-radius: 12px;
-  transition: 0.2s; cursor: pointer;
+  padding: 10px; font-size: 13px; font-weight: 700; border-radius: 12px;
+  transition: 0.3s; cursor: pointer; text-transform: uppercase;
 }
 .tab.active {
   background: rgba(255,255,255,0.1); color: white;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-  text-shadow: 0 0 10px rgba(255,255,255,0.3);
+  box-shadow: 0 0 15px rgba(255,255,255,0.1);
+  text-shadow: 0 0 5px white;
 }
 
-/* --- CALCULATOR --- */
+/* --- CALCULATOR UI --- */
 .screen {
-  text-align: right; font-size: 56px; font-weight: 200; color: white;
-  margin-bottom: 15px; height: 70px; overflow: hidden; white-space: nowrap;
-  letter-spacing: -2px; padding-right: 5px;
-  text-shadow: 0 0 15px rgba(255,255,255,0.15);
+  text-align: right; font-size: 50px; font-weight: 300; color: white;
+  margin-bottom: 20px; height: 60px; overflow: hidden; white-space: nowrap;
+  text-shadow: 0 0 10px rgba(255,255,255,0.3); padding-right: 5px;
 }
 
 .keypad {
-  display: grid; 
-  grid-template-columns: repeat(4, 1fr); /* 4 колонки */
-  gap: 12px; /* Расстояние между кнопками */
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px;
 }
 
 .btn {
-  width: 100%; aspect-ratio: 1; /* КРУГЛЫЕ КНОПКИ */
-  border-radius: 50%; border: none;
+  aspect-ratio: 1; border-radius: 50%; border: none;
   font-size: 24px; color: white; cursor: pointer;
-  background: rgba(255,255,255,0.07);
+  background: var(--glass-btn);
+  border: 1px solid rgba(255,255,255,0.05);
   display: flex; justify-content: center; align-items: center;
-  transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.1);
+  transition: all 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: inset 0 2px 5px rgba(255,255,255,0.05);
 }
 
 /* Эффект Пружины */
-.btn:active { 
-  transform: scale(0.85); 
-  background: rgba(255,255,255,0.15); 
-}
+.btn:active { transform: scale(0.85); background: rgba(255,255,255,0.15); }
 
-/* Стили кнопок */
-.btn.op { color: #5ac8fa; background: rgba(0, 122, 255, 0.15); }
-.btn.op:active { background: rgba(0, 122, 255, 0.3); box-shadow: 0 0 15px var(--neon); }
+/* Операторы (Свечение) */
+.btn.op { color: var(--neon-blue); background: rgba(0, 242, 255, 0.05); }
+.btn.op:active { background: rgba(0, 242, 255, 0.2); box-shadow: 0 0 15px var(--neon-blue); }
 
-.btn.eq { background: var(--neon); box-shadow: var(--neon-glow); }
-.btn.eq:active { transform: scale(0.9); }
+/* Равно (Акцент) */
+.btn.eq { background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple)); border: none; }
+.btn.eq:active { box-shadow: 0 0 25px var(--neon-blue); }
 
-.btn.zero { 
-  grid-column: span 2; aspect-ratio: auto; border-radius: 40px; 
-  justify-content: flex-start; padding-left: 25px; 
-}
+.btn.zero { grid-column: span 2; aspect-ratio: auto; border-radius: 40px; justify-content: flex-start; padding-left: 28px; }
 
-/* --- FLIP INTERFACE --- */
+/* --- FLIP UI --- */
 .label { 
-  font-size: 10px; color: #888; text-transform: uppercase; font-weight: 700; 
-  margin-bottom: 6px; margin-left: 5px; letter-spacing: 0.5px;
+  font-size: 10px; color: #888; text-transform: uppercase; 
+  font-weight: 700; margin-bottom: 6px; margin-left: 5px; 
 }
 .input {
   width: 100%; padding: 16px; background: rgba(0,0,0,0.3);
   border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
-  color: white; font-size: 20px; outline: none; margin-bottom: 15px;
-  font-weight: 500; transition: 0.2s;
-  user-select: text; -webkit-user-select: text; /* В полях текст можно выделять */
+  color: white; font-size: 22px; outline: none; margin-bottom: 15px;
+  font-weight: 600; text-align: center;
+  transition: 0.3s;
 }
-.input:focus { border-color: var(--neon); box-shadow: 0 0 15px rgba(0,122,255,0.2); }
+.input:focus { border-color: var(--neon-blue); box-shadow: 0 0 15px rgba(0, 242, 255, 0.2); }
+
+/* Переключатель комиссии */
+.fees { display: flex; gap: 10px; margin-bottom: 15px; }
+.fee-chip {
+  flex: 1; padding: 10px; background: rgba(255,255,255,0.05);
+  border: 1px solid transparent; border-radius: 12px;
+  color: #666; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center;
+  transition: 0.3s;
+}
+.fee-chip.active {
+  border-color: var(--neon-blue); color: white; background: rgba(0, 242, 255, 0.1);
+  box-shadow: 0 0 10px rgba(0, 242, 255, 0.1);
+}
 
 .result-card {
   margin-top: 10px; padding: 20px; text-align: center;
-  background: rgba(50, 215, 75, 0.06); 
-  border: 1px solid rgba(50, 215, 75, 0.15); border-radius: 20px;
-  animation: slideUp 0.3s ease;
+  background: linear-gradient(135deg, rgba(0,255,100,0.05), rgba(0,255,100,0.01));
+  border: 1px solid rgba(0, 255, 100, 0.2); border-radius: 20px;
+  animation: popIn 0.3s;
 }
-.res-val { font-size: 32px; font-weight: 800; color: #32d74b; text-shadow: 0 0 15px rgba(50,215,75,0.2); }
-.res-info { font-size: 12px; color: #666; margin-top: 10px; }
+.res-val { font-size: 36px; font-weight: 800; color: #32d74b; text-shadow: 0 0 20px rgba(50,215,75,0.3); }
+.res-sub { font-size: 13px; color: #888; margin-top: 5px; }
 
-@keyframes slideUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+@keyframes popIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
