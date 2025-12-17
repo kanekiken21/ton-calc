@@ -8,39 +8,58 @@ function App() {
   const [buyPrice, setBuyPrice] = useState('')
   const [sellPrice, setSellPrice] = useState('')
   const [flipProfit, setFlipProfit] = useState(null)
+  
   const [starsAmount, setStarsAmount] = useState('')
   const [starsProfit, setStarsProfit] = useState(null)
+  
+  // КУРС TON (null означает "пока не знаем")
+  const [tonPrice, setTonPrice] = useState(null)
 
-  // Calc State
+  // State для Калькулятора
   const [calcDisplay, setCalcDisplay] = useState('0')
   const [firstNum, setFirstNum] = useState(null)
   const [operator, setOperator] = useState(null)
   const [waitingForSecond, setWaitingForSecond] = useState(false)
 
   useEffect(() => {
+    // 1. Настройка Телеграма
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.setHeaderColor('#000000'); 
       window.Telegram.WebApp.expand();
     }
+
+    // 2. ЗАГРУЗКА КУРСА TON ИЗ ИНТЕРНЕТА
+    fetch('https://api.coingecko.com/api/v3/simple/price?ids=the-open-network&vs_currencies=usd')
+      .then(response => response.json())
+      .then(data => {
+        // CoinGecko возвращает: { "the-open-network": { "usd": 5.42 } }
+        const price = data['the-open-network'].usd;
+        setTonPrice(price);
+      })
+      .catch(err => console.error("Ошибка загрузки курса:", err));
   }, [])
 
-  // Logic Flip
+  // --- Logic Flip ---
   const calculateFlip = () => {
-    const buy = parseFloat(buyPrice); const sell = parseFloat(sellPrice);
+    const buy = parseFloat(buyPrice); 
+    const sell = parseFloat(sellPrice);
     if (isNaN(buy) || isNaN(sell)) return;
+    
     const fee = sell * 0.10; 
-    setFlipProfit((sell - fee - buy).toFixed(2));
+    const profit = sell - fee - buy;
+    setFlipProfit(profit.toFixed(2));
   }
 
-  // Logic Stars
+  // --- Logic Stars ---
   const calculateStars = () => {
     const amount = parseFloat(starsAmount);
     if (isNaN(amount)) return;
+    // Курс звезды примерно $0.0135
     setStarsProfit((amount * 0.0135).toFixed(2));
   }
 
-  // Logic Calc
+  // --- Logic System Calc ---
   const inputDigit = (digit) => {
     if (waitingForSecond) {
       setCalcDisplay(String(digit));
@@ -70,22 +89,34 @@ function App() {
 
   return (
     <div className="glass-card">
-      {/* Лого показываем везде, кроме калькулятора */}
+      
+      {/* HEADER: Показываем курс TON, если он загрузился */}
       {activeTab !== 'system' && (
-        <div style={{ marginBottom: '15px' }}>
-          <img src="/star.png" alt="Logo" style={{ width: '80px', height: '80px', filter: 'drop-shadow(0 0 15px rgba(0,122,255,0.4))' }} 
+        <div style={{ marginBottom: '15px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '10px' }}>
+          
+          <img src="/star.png" alt="Logo" style={{ width: '60px', height: '60px', filter: 'drop-shadow(0 0 15px rgba(0,122,255,0.4))' }} 
                onError={(e) => e.target.style.display = 'none'} /> 
+          
+          {/* Плашка с курсом */}
+          {tonPrice ? (
+             <div className="price-badge fade-in">
+               💎 1 TON ≈ ${tonPrice}
+             </div>
+          ) : (
+             <div className="price-badge" style={{opacity: 0.5}}>Загрузка курса...</div>
+          )}
+
         </div>
       )}
 
-      {/* Меню вкладок */}
+      {/* TABS */}
       <div className="tabs">
         <button className={`tab-btn ${activeTab === 'flip' ? 'active' : ''}`} onClick={() => setActiveTab('flip')}>Flip</button>
         <button className={`tab-btn ${activeTab === 'stars' ? 'active' : ''}`} onClick={() => setActiveTab('stars')}>Stars</button>
         <button className={`tab-btn ${activeTab === 'system' ? 'active' : ''}`} onClick={() => setActiveTab('system')}>Calc</button>
       </div>
 
-      {/* FLIP */}
+      {/* --- FLIP --- */}
       {activeTab === 'flip' && (
         <div className="tab-content fade-in">
           <div className="input-group">
@@ -97,16 +128,28 @@ function App() {
             <input type="number" className="input-field" placeholder="0" value={sellPrice} onChange={(e) => setSellPrice(e.target.value)} />
           </div>
           <button className="action-btn" onClick={calculateFlip}>Посчитать профит</button>
+          
           {flipProfit !== null && (
             <div className="result-box">
               <div style={{color:'#aaa', fontSize:'12px', marginBottom:'5px'}}>Чистая прибыль</div>
-              <div className="result-value" style={{color: flipProfit >= 0 ? '#4ade80' : '#ff453a'}}>{flipProfit} TON</div>
+              
+              {/* Прибыль в TON */}
+              <div className="result-value" style={{color: flipProfit >= 0 ? '#4ade80' : '#ff453a'}}>
+                {flipProfit} TON
+              </div>
+              
+              {/* Прибыль в USD (считаем только если есть курс) */}
+              {tonPrice && (
+                 <div style={{color: '#888', fontSize: '14px', marginTop: '5px'}}>
+                   ≈ ${(flipProfit * tonPrice).toFixed(2)}
+                 </div>
+              )}
             </div>
           )}
         </div>
       )}
 
-      {/* STARS */}
+      {/* --- STARS --- */}
       {activeTab === 'stars' && (
         <div className="tab-content fade-in">
           <div className="input-group">
@@ -123,7 +166,7 @@ function App() {
         </div>
       )}
 
-      {/* SYSTEM CALCULATOR (TON STYLE) */}
+      {/* --- SYSTEM --- */}
       {activeTab === 'system' && (
         <div className="tab-content fade-in">
           <div className="calc-screen">{calcDisplay}</div>

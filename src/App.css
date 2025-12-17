@@ -170,3 +170,17 @@ label { font-size: 13px; color: #8899a6; margin-bottom: 6px; display: block; mar
 .result-value { font-size: 28px; font-weight: 800; color: #4ade80; }
 .fade-in { animation: fadeIn 0.4s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Стиль для плашки с ценой */
+.price-badge {
+  background: rgba(0, 122, 255, 0.1);
+  border: 1px solid rgba(0, 122, 255, 0.3);
+  color: #5ac8fa;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 600;
+  display: inline-block;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
