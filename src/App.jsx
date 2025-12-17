@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// СЛОВАРЬ (Мультиязычность)
 const t = {
   ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил (TON)', sell: 'Продал (TON)', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек' },
   en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet' },
@@ -12,8 +11,6 @@ const t = {
 function App() {
   const [loading, setLoading] = useState(true)
   const [mode, setMode] = useState('calc') 
-  
-  // ВАЖНО: Английский по умолчанию для модерации
   const [lang, setLang] = useState('en')
   
   const [showSettings, setShowSettings] = useState(false)
@@ -32,29 +29,41 @@ function App() {
   const [op, setOp] = useState(null)
   const [memory, setMemory] = useState(null)
 
+  // --- ИНТЕГРАЦИЯ АНАЛИТИКИ (FIX) ---
+  useEffect(() => {
+    // Проверяем, не добавлен ли уже скрипт, чтобы не дублировать
+    if (document.getElementById('tg-analytics-script')) return;
+
+    const script = document.createElement('script');
+    script.id = 'tg-analytics-script';
+    script.src = 'https://tganalytics.xyz/index.js';
+    script.async = true;
+    
+    // Как только скрипт загрузился, запускаем init
+    script.onload = () => {
+      if (window.telegramAnalytics) {
+        window.telegramAnalytics.init('eyJhcHBfbmFtZSI6Im15X3Rvbl9jYWxjdWxhdG9yIiwiYXBwX3VybCI6Imh0dHBzOi8vdC5tZS9teXRvbmNhbGN1bGF0b3JfYm90IiwiYXBwX2RvbWFpbiI6Imh0dHBzOi8vdG9uLWNhbGMudmVyY2VsLmFwcC8ifQ==!b4veLOsGUosJ8kAG08IxPb4jbi/ItY7BgPTwtFACAas=');
+        console.log('TG Analytics Initialized Successfully');
+      }
+    };
+
+    document.body.appendChild(script);
+  }, []); // Пустой массив = сработает 1 раз при запуске приложения
+
   useEffect(() => {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
       window.Telegram.WebApp.setHeaderColor('#000000');
-      // Блокируем вертикальный свайп (для стабильности)
       window.Telegram.WebApp.isVerticalSwipesEnabled = false; 
       
-      // ЛОГИКА ЯЗЫКА (Compliance)
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
-      
-      // Включаем RU только для русских и белорусов
       if (userLang === 'ru' || userLang === 'be') {
         setLang('ru');
-      } 
-      // Включаем UA для украинцев
-      else if (userLang === 'uk') {
+      } else if (userLang === 'uk') {
         setLang('ua');
       }
-      // Для всех остальных (en, de, fr, es...) останется 'en' (дефолтный)
     }
-    
-    // Имитация загрузки + получение курса
     setTimeout(() => setLoading(false), 2500);
     
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
@@ -62,7 +71,6 @@ function App() {
       .catch(() => setTonPrice('6.20'));
   }, [])
 
-  // --- НАВИГАЦИЯ ---
   const safeOpenLink = (url) => {
     const tg = window.Telegram?.WebApp;
     if (tg && url.startsWith('https://t.me/')) {
@@ -74,7 +82,6 @@ function App() {
     }
   };
 
-  // --- ДОНАТ ---
   const handleDonate = async () => {
     const amount = donateAmount && parseFloat(donateAmount) > 0 ? donateAmount : '0.1';
     setIsDonating(true);
@@ -85,10 +92,9 @@ function App() {
           body: JSON.stringify({ amount })
       });
       
-      // Проверка на HTML ошибку (если API недоступно)
       const contentType = res.headers.get("content-type");
       if (!contentType || !contentType.includes("application/json")) {
-        throw new Error("Server Error (Check /api folder)");
+        throw new Error("Server Error");
       }
 
       const data = await res.json();
@@ -104,7 +110,7 @@ function App() {
     }
   }
 
-  // --- КАЛЬКУЛЯТОР ---
+  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -123,7 +129,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // --- FLIP ---
+  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -142,7 +148,6 @@ function App() {
 
       {loading && (
         <div className="splash">
-           {/* НОВОГОДНИЙ ЛОГОТИП */}
            <svg className="splash-logo" viewBox="0 0 200 200" fill="none" xmlns="http://www.w3.org/2000/svg">
             <defs>
               <filter id="frostGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -162,11 +167,9 @@ function App() {
                 <stop offset="1" stopColor="#007AFF"/>
               </linearGradient>
             </defs>
-
             <g filter="url(#frostGlow)">
               <path d="M100 0L186.603 50V150L100 200L13.3975 150V50L100 0Z" fill="url(#paint0_linear_ny)"/>
               <path d="M100 200L13.3975 150L100 100L186.603 150L100 200Z" fill="url(#paint1_linear_ny)"/>
-              {/* Снег */}
               <circle cx="50" cy="30" r="3" fill="white" opacity="0.8" />
               <circle cx="150" cy="60" r="2.5" fill="white" opacity="0.7" />
               <circle cx="100" cy="100" r="4" fill="white" opacity="0.9" />
@@ -203,13 +206,11 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
-          {/* SETTINGS + WALLET */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
                   <h3 style={{marginBottom:'15px', color:'white', textAlign:'center'}}>{t[lang].sets}</h3>
                   
-                  {/* КНОПКА КОШЕЛЬКА */}
                   <div style={{width:'100%', display:'flex', justifyContent:'center', marginBottom:'15px'}}>
                     <TonConnectButton />
                   </div>
