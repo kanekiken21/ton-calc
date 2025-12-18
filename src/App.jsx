@@ -2,27 +2,24 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// Иконки SVG (inline)
+// Icons
 const IconHome = () => <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>;
-const IconTools = () => <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>; // Молния для утилит
+const IconTools = () => <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>;
 const IconSettings = () => <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.68 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>;
 
-// Словарь переводов (100% покрытия)
 const t = {
   en: { 
-    welcome: "Welcome!", 
-    sub: "Estimate NFT profits and fees instantly.", 
-    donateTitle: "Support Developer ❤️", donatePh: "Amount", send: "SEND",
+    welcome: "Welcome!", sub: "Estimate profits and check TON price instantly.", 
+    donateTitle: "Support Developer", donatePh: "Amount", send: "SEND",
     nav_home: "Home", nav_app: "App", nav_set: "Settings",
-    calc: "Calc", flip: "Flip", 
+    calc: "Calculator", flip: "NFT Flip", 
     buy: "Buy Price", sell: "Sell Price", custom: "Custom %",
     net: "Net Profit",
     sets: "Settings", news: "News Channel", lang: "Language" 
   },
   ru: { 
-    welcome: "Привет!", 
-    sub: "Считай профит с NFT и комиссии моментально.", 
-    donateTitle: "Поддержать автора ❤️", donatePh: "Сумма", send: "ОТПРАВИТЬ",
+    welcome: "Привет!", sub: "Считай профит и курс TON моментально.", 
+    donateTitle: "Поддержать автора", donatePh: "Сумма", send: "ОТПРАВИТЬ",
     nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настр.",
     calc: "Кальк", flip: "Флип", 
     buy: "Покупка", sell: "Продажа", custom: "Свой %",
@@ -30,9 +27,8 @@ const t = {
     sets: "Настройки", news: "Канал новостей", lang: "Язык" 
   },
   ua: { 
-    welcome: "Привіт!", 
-    sub: "Рахуй профіт з NFT та комісії миттєво.", 
-    donateTitle: "Підтримати автора ❤️", donatePh: "Сума", send: "НАДІСЛАТИ",
+    welcome: "Привіт!", sub: "Рахуй профіт та курс TON миттєво.", 
+    donateTitle: "Підтримати автора", donatePh: "Сума", send: "НАДІСЛАТИ",
     nav_home: "Головна", nav_app: "Утиліти", nav_set: "Налашт.",
     calc: "Кальк", flip: "Фліп", 
     buy: "Купівля", sell: "Продаж", custom: "Свій %",
@@ -63,23 +59,20 @@ function App() {
   const [isDonating, setIsDonating] = useState(false);
 
   useEffect(() => {
-    // 1. Инициализация Telegram
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.setHeaderColor('#0b1221'); // Под цвет фона
+      window.Telegram.WebApp.setHeaderColor('#000a14'); 
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') setLang('ru');
       else if (userLang === 'uk') setLang('ua');
     }
 
-    // 2. Курс
     fetch('https://api.binance.com/api/v3/ticker/price?symbol=TONUSDT')
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.50'));
 
-    // 3. Снег
     setSnowflakes(Array.from({ length: 40 }).map((_, i) => ({
       id: i, left: Math.random()*100+'%', delay: Math.random()*5+'s', dur: Math.random()*5+5+'s'
     })));
@@ -105,7 +98,7 @@ function App() {
     finally { setIsDonating(false); }
   }
 
-  // --- ЛОГИКА КАЛЬКУЛЯТОРА ---
+  // CALC Logic
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -124,7 +117,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // --- ЛОГИКА FLIP ---
+  // FLIP Logic
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -135,7 +128,6 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* ФОНОВЫЕ ЭЛЕМЕНТЫ */}
       <div className="ambient-wrapper">
          <div className="orb orb-1"></div>
          <div className="orb orb-2"></div>
@@ -144,23 +136,22 @@ function App() {
          </div>
       </div>
 
-      {/* ОБЛАСТЬ КОНТЕНТА */}
       <div className="content-area">
          
-         {/* --- 1. HOME SCREEN --- */}
+         {/* HOME */}
          {activeTab === 'home' && (
            <div className="island">
               <div className="mascot-display">
-                <div className="mascot-back-glow"></div>
+                <div className="mascot-glow"></div>
                 <img src="/img/chibi-happy.png" className="mascot-main-img" alt="Tony" />
               </div>
               <h1 className="welcome-title">{t[lang].welcome}</h1>
               <p className="welcome-text">{t[lang].sub}</p>
               
               <div className="donate-card">
-                <div className="donate-label">{t[lang].donateTitle}</div>
-                <div className="donate-row">
-                  <input type="number" className="glass-input" style={{textAlign:'left'}} placeholder={t[lang].donatePh} 
+                <div className="donate-label">{t[lang].donateTitle} ❤️</div>
+                <div style={{display:'flex', gap:'8px'}}>
+                  <input type="number" className="glass-input" placeholder={t[lang].donatePh} 
                          value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
                   <button className="donate-btn" onClick={handleDonate}>
                     {isDonating ? '...' : t[lang].send}
@@ -170,11 +161,13 @@ function App() {
            </div>
          )}
 
-         {/* --- 2. TOOLS SCREEN --- */}
+         {/* TOOLS */}
          {activeTab === 'tools' && (
            <>
              <div className="tools-header">
-                <div className="ton-badge">💎 TON: ${tonPrice}</div>
+                <div className="ton-badge">
+                  <span style={{fontSize:'16px'}}>💎</span> TON: ${tonPrice}
+                </div>
                 <div className="segmented-control">
                    <button className={`segment-btn ${toolMode==='calc'?'active':''}`} onClick={()=>setToolMode('calc')}>{t[lang].calc}</button>
                    <button className={`segment-btn ${toolMode==='flip'?'active':''}`} onClick={()=>setToolMode('flip')}>{t[lang].flip}</button>
@@ -218,15 +211,23 @@ function App() {
                       <button className={`segment-btn ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
                       <button className={`segment-btn ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
                    </div>
-                   {feeType==='custom' && <input className="glass-input" placeholder="%" value={customFee} onChange={e=>setCustomFee(e.target.value)}/>}
+                   {feeType==='custom' && <input className="glass-input" placeholder="Fee %" value={customFee} onChange={e=>setCustomFee(e.target.value)}/>}
                    
                    {profit !== null && (
-                      <div className="result">
-                         <div style={{fontSize:'12px', color:'#aaa', marginBottom:'5px'}}>{t[lang].net}</div>
-                         <div style={{fontSize:'28px', fontWeight:'bold', color: parseFloat(profit)>=0?'#32d74b':'#ff453a'}}>
+                      <div className="result-card">
+                         <div style={{fontSize:'12px', color:'#aaa'}}>{t[lang].net}</div>
+                         <div className="res-val" style={{color: parseFloat(profit)>=0?'#32d74b':'#ff453a'}}>
                            {parseFloat(profit)>0?'+':''}{profit} TON
                          </div>
                          <div style={{fontSize:'12px', opacity:0.5}}>≈ ${(parseFloat(profit)*parseFloat(tonPrice||0)).toFixed(2)}</div>
+                         
+                         {/* КОТ РЕАГИРУЕТ НА ПРОФИТ */}
+                         <div style={{marginTop:'15px', display:'flex', justifyContent:'center'}}>
+                           <img 
+                             src={parseFloat(profit) >= 0 ? "/img/chibi-happy.png" : "/img/chibi-sad.png"} 
+                             style={{width:'100px', filter: parseFloat(profit)>=0 ? 'drop-shadow(0 0 15px #32d74b)' : 'drop-shadow(0 0 15px #ff453a)'}}
+                           />
+                         </div>
                       </div>
                    )}
                  </div>
@@ -235,11 +236,10 @@ function App() {
            </>
          )}
 
-         {/* --- 3. SETTINGS SCREEN --- */}
+         {/* SETTINGS */}
          {activeTab === 'settings' && (
            <div className="settings-list">
              <h2 style={{textAlign:'center', marginBottom:'20px'}}>{t[lang].sets}</h2>
-             
              <div style={{display:'flex', justifyContent:'center', marginBottom:'20px'}}>
                 <TonConnectButton />
              </div>
@@ -258,19 +258,15 @@ function App() {
              </div>
            </div>
          )}
-
       </div>
 
-      {/* НИЖНЕЕ МЕНЮ */}
       <div className="bottom-nav">
          <div className={`nav-item ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
             <IconSettings /> <span>{t[lang].nav_set}</span>
          </div>
-         
-         <div className="center-circle-wrapper" onClick={()=>setActiveTab('home')}>
-            <div className="center-circle"><IconHome /></div>
+         <div className="center-btn-wrapper" onClick={()=>setActiveTab('home')}>
+            <div className="center-btn"><IconHome /></div>
          </div>
-
          <div className={`nav-item ${activeTab==='tools'?'active':''}`} onClick={()=>setActiveTab('tools')}>
             <IconTools /> <span>{t[lang].nav_app}</span>
          </div>
