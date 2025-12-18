@@ -3,7 +3,7 @@ import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Канал новостей', donate: 'Донат автору', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек', welcomeBtn: 'Погнали!' },
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек', welcomeBtn: 'Погнали!' },
   en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet', welcomeBtn: "Let's Go!" },
   ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат', donatePlaceholder: 'Сума (TON)', wallet: 'Гаманець', welcomeBtn: 'Поїхали!' }
 }
@@ -15,7 +15,7 @@ function App() {
   const [lang, setLang] = useState('en')
   const [showSettings, setShowSettings] = useState(false)
   const [tonPrice, setTonPrice] = useState(null)
-  const [snowflakes, setSnowflakes] = useState([]) // Снег
+  const [snowflakes, setSnowflakes] = useState([])
 
   const [isDonating, setIsDonating] = useState(false)
   const [donateAmount, setDonateAmount] = useState('')
@@ -29,7 +29,6 @@ function App() {
   const [memory, setMemory] = useState(null)
 
   useEffect(() => {
-    // 1. Telegram Init
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
@@ -40,17 +39,17 @@ function App() {
       else if (userLang === 'uk') setLang('ua');
     }
 
-    // 2. Welcome Check
     const hasVisited = localStorage.getItem('hasMetTony');
     if (!hasVisited) setShowWelcome(true);
 
-    // 3. Snow Generator (30 снежинок)
-    const flakes = Array.from({ length: 30 }).map((_, i) => ({
+    // Генерация красивого снега
+    const flakes = Array.from({ length: 40 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100 + '%',
-      animDuration: Math.random() * 5 + 5 + 's',
+      animDuration: Math.random() * 5 + 8 + 's', // Медленное падение
       animDelay: Math.random() * 5 + 's',
-      opacity: Math.random()
+      opacity: Math.random() * 0.5 + 0.3,
+      size: Math.random() * 10 + 10 + 'px'
     }));
     setSnowflakes(flakes);
 
@@ -88,7 +87,7 @@ function App() {
     finally { setIsDonating(false); }
   }
 
-  // Calc
+  // Calc Logic
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -107,7 +106,7 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // Flip
+  // Flip Logic
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -119,11 +118,15 @@ function App() {
   return (
     <>
       <div className="ambient-bg">
-        {/* Генерация снега */}
+        {/* СНЕГ */}
         <div className="snow-container">
           {snowflakes.map(f => (
             <div key={f.id} className="snowflake" style={{
-              left: f.left, animationDuration: f.animDuration, animationDelay: f.animDelay, opacity: f.opacity
+              left: f.left, 
+              animationDuration: f.animDuration, 
+              animationDelay: f.animDelay, 
+              opacity: f.opacity,
+              fontSize: f.size
             }}>❄</div>
           ))}
         </div>
@@ -137,10 +140,10 @@ function App() {
 
       {!loading && showWelcome && (
         <div className="welcome-overlay">
-           <div className="welcome-content" style={{textAlign:'center'}}>
-              <img src="/img/chibi-happy.png" style={{width:'180px', filter:'drop-shadow(0 0 30px #007AFF)'}} alt="Tony" />
-              <h2 style={{color:'white', marginTop:'20px'}}>Hi, I'm Tony! 💎</h2>
-              <button className="btn neon-btn" style={{marginTop:'30px', borderRadius:'16px'}} onClick={closeWelcome}>
+           <div className="welcome-content">
+              <img src="/img/chibi-happy.png" className="welcome-img" alt="Tony" />
+              <h2>Hi, I'm Tony! 💎</h2>
+              <button className="btn neon-btn" style={{marginTop:'20px', borderRadius:'16px', width:'100%'}} onClick={closeWelcome}>
                 {t[lang].welcomeBtn}
               </button>
            </div>
@@ -158,15 +161,14 @@ function App() {
                  <div className="ton-price">💎 {tonPrice ? `$${tonPrice}` : '...'}</div>
               </div>
             </div>
-            <div className="settings-btn btn" onClick={()=>setShowSettings(true)}>⚙️</div>
+            <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
           </div>
 
           <div className="tabs">
-            <button className={`tab btn ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>{t[lang].calc}</button>
-            <button className={`tab btn ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
+            <button className={`tab ${mode==='calc'?'active':''}`} onClick={()=>setMode('calc')}>{t[lang].calc}</button>
+            <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
-          {/* SETTINGS MODAL */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
@@ -176,9 +178,9 @@ function App() {
                   </div>
                   
                   <div style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
-                    <button className={`tab btn ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
-                    <button className={`tab btn ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
-                    <button className={`tab btn ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
+                    <button className={`tab ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
+                    <button className={`tab ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
+                    <button className={`tab ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
                   </div>
 
                   <button className="menu-btn" onClick={()=>safeOpenLink('https://t.me/mytoncalculator')}>
@@ -186,9 +188,9 @@ function App() {
                   </button>
 
                   <div style={{display:'flex', gap:'10px'}}>
-                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px'}} 
+                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px', height:'auto'}} 
                             placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
-                     <button className="menu-btn gold" style={{width:'auto', marginBottom:0}} onClick={handleDonate}>
+                     <button className="menu-btn gold" style={{width:'auto', marginBottom:0, background:'linear-gradient(45deg, #FFD700, #FFA500)'}} onClick={handleDonate}>
                         {isDonating ? '...' : '⭐️'}
                      </button>
                   </div>
@@ -202,7 +204,6 @@ function App() {
 
           {mode === 'calc' && (
             <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
-              {/* Исправленный экран */}
               <div className="screen">{display}</div>
               <div className="keypad">
                 <button className="btn clean-btn" onClick={reset}>AC</button>
@@ -240,9 +241,9 @@ function App() {
               <div className="label">{t[lang].sell} (TON)</div>
               <input type="number" className="glass-input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
 
-              <div className="fees">
-                <button className={`tab btn ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
-                <button className={`tab btn ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
+              <div className="fees" style={{display:'flex', gap:'8px'}}>
+                <button className={`tab ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
+                <button className={`tab ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
               </div>
               {feeType === 'custom' && (
                  <input type="number" className="glass-input" placeholder="5" value={customFee} onChange={e=>setCustomFee(e.target.value)} />
