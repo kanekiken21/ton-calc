@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// Icons
 const IconHome = () => <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>;
 const IconTools = () => <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>;
 const IconSettings = () => <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.68 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>;
@@ -13,7 +12,7 @@ const t = {
     donateTitle: "Support Developer", donatePh: "Amount", send: "SEND",
     nav_home: "Home", nav_app: "App", nav_set: "Settings",
     calc: "Calculator", flip: "NFT Flip", 
-    buy: "Buy Price", sell: "Sell Price", custom: "Custom %",
+    buy: "Buy", sell: "Sell", custom: "Custom %",
     net: "Net Profit",
     sets: "Settings", news: "News Channel", lang: "Language" 
   },
@@ -44,13 +43,12 @@ function App() {
   const [tonPrice, setTonPrice] = useState('...');
   const [snowflakes, setSnowflakes] = useState([]);
 
-  // Calc States
+  // Logic States
   const [display, setDisplay] = useState('0');
   const [waiting, setWaiting] = useState(false);
   const [op, setOp] = useState(null);
   const [memory, setMemory] = useState(null);
 
-  // Flip & Donate States
   const [buy, setBuy] = useState('');
   const [sell, setSell] = useState('');
   const [feeType, setFeeType] = useState('std');
@@ -62,7 +60,7 @@ function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.setHeaderColor('#000a14'); 
+      window.Telegram.WebApp.setHeaderColor('#000a14');
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') setLang('ru');
@@ -89,8 +87,7 @@ function App() {
     setIsDonating(true);
     try {
       const res = await fetch('/api/donate', {
-          method: 'POST', headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ amount })
+          method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ amount })
       });
       const data = await res.json();
       if (data.url) safeOpenLink(data.url);
@@ -98,7 +95,7 @@ function App() {
     finally { setIsDonating(false); }
   }
 
-  // CALC Logic
+  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -107,17 +104,17 @@ function App() {
     const val = parseFloat(display);
     if (memory === null) setMemory(val);
     else if (op) {
-      const res = calculate(memory, val, op);
+      const res = calc(memory, val, op);
       setDisplay(String(res).slice(0, 10)); setMemory(res);
     }
     setWaiting(true); setOp(o);
   }
-  const calculate = (a,b,o) => { if(o==='/')return a/b; if(o==='x')return a*b; if(o==='-')return a-b; if(o==='+')return a+b; return b; }
+  const calc = (a,b,o) => { if(o==='/')return a/b; if(o==='x')return a*b; if(o==='-')return a-b; if(o==='+')return a+b; return b; }
   const reset = () => { setDisplay('0'); setMemory(null); setOp(null); setWaiting(false); }
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP Logic
+  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -131,6 +128,7 @@ function App() {
       <div className="ambient-wrapper">
          <div className="orb orb-1"></div>
          <div className="orb orb-2"></div>
+         <div className="orb orb-3"></div>
          <div className="snow-container">
             {snowflakes.map((s,i)=>(<div key={i} className="snowflake" style={{left:s.left, animationDuration:s.dur, animationDelay:s.delay}}>❄</div>))}
          </div>
@@ -138,9 +136,9 @@ function App() {
 
       <div className="content-area">
          
-         {/* HOME */}
+         {/* --- HOME --- */}
          {activeTab === 'home' && (
-           <div className="island">
+           <div className="island fade-in">
               <div className="mascot-display">
                 <div className="mascot-glow"></div>
                 <img src="/img/chibi-happy.png" className="mascot-main-img" alt="Tony" />
@@ -161,20 +159,18 @@ function App() {
            </div>
          )}
 
-         {/* TOOLS */}
+         {/* --- TOOLS --- */}
          {activeTab === 'tools' && (
            <>
-             <div className="tools-header">
-                <div className="ton-badge">
-                  <span style={{fontSize:'16px'}}>💎</span> TON: ${tonPrice}
-                </div>
+             <div className="tools-header fade-in">
+                <div className="ton-badge"><span>💎</span> TON: ${tonPrice}</div>
                 <div className="segmented-control">
                    <button className={`segment-btn ${toolMode==='calc'?'active':''}`} onClick={()=>setToolMode('calc')}>{t[lang].calc}</button>
                    <button className={`segment-btn ${toolMode==='flip'?'active':''}`} onClick={()=>setToolMode('flip')}>{t[lang].flip}</button>
                 </div>
              </div>
 
-             <div className="island">
+             <div className="island fade-in">
                {toolMode === 'calc' && (
                  <>
                    <div className="screen">{display}</div>
@@ -221,11 +217,11 @@ function App() {
                          </div>
                          <div style={{fontSize:'12px', opacity:0.5}}>≈ ${(parseFloat(profit)*parseFloat(tonPrice||0)).toFixed(2)}</div>
                          
-                         {/* КОТ РЕАГИРУЕТ НА ПРОФИТ */}
+                         {/* КОТ */}
                          <div style={{marginTop:'15px', display:'flex', justifyContent:'center'}}>
                            <img 
                              src={parseFloat(profit) >= 0 ? "/img/chibi-happy.png" : "/img/chibi-sad.png"} 
-                             style={{width:'100px', filter: parseFloat(profit)>=0 ? 'drop-shadow(0 0 15px #32d74b)' : 'drop-shadow(0 0 15px #ff453a)'}}
+                             style={{width:'100px', filter: parseFloat(profit)>=0 ? 'drop-shadow(0 0 15px #32d74b)' : 'drop-shadow(0 0 15px #ff453a)', animation:'popUp 0.5s'}}
                            />
                          </div>
                       </div>
@@ -236,16 +232,16 @@ function App() {
            </>
          )}
 
-         {/* SETTINGS */}
+         {/* --- SETTINGS --- */}
          {activeTab === 'settings' && (
-           <div className="settings-list">
+           <div className="settings-list fade-in">
              <h2 style={{textAlign:'center', marginBottom:'20px'}}>{t[lang].sets}</h2>
              <div style={{display:'flex', justifyContent:'center', marginBottom:'20px'}}>
                 <TonConnectButton />
              </div>
 
              <div className="setting-item">
-               <div style={{display:'flex', alignItems:'center'}}><span className="set-icon">🌐</span> {t[lang].lang}</div>
+               <div style={{display:'flex', alignItems:'center'}}><span style={{marginRight:10}}>🌐</span> {t[lang].lang}</div>
                <div className="segmented-control" style={{width:'120px'}}>
                   <button className={`segment-btn ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
                   <button className={`segment-btn ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
@@ -253,13 +249,15 @@ function App() {
              </div>
 
              <div className="setting-item" onClick={()=>safeOpenLink('https://t.me/mytoncalculator')}>
-               <div style={{display:'flex', alignItems:'center'}}><span className="set-icon">📢</span> {t[lang].news}</div>
+               <div style={{display:'flex', alignItems:'center'}}><span style={{marginRight:10}}>📢</span> {t[lang].news}</div>
                <span style={{opacity:0.5}}>↗</span>
              </div>
            </div>
          )}
+
       </div>
 
+      {/* NAV */}
       <div className="bottom-nav">
          <div className={`nav-item ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
             <IconSettings /> <span>{t[lang].nav_set}</span>
