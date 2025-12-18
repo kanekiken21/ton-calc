@@ -1,18 +1,17 @@
 :root {
   --primary: #007AFF;
   --accent: #29C6FF;
-  --glass-bg: rgba(15, 25, 50, 0.6); /* Темнее и прозрачнее */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --nav-bg: rgba(8, 15, 30, 0.9);
+  --glass-bg: rgba(20, 30, 50, 0.65); /* Плотное стекло */
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --nav-bg: rgba(10, 15, 30, 0.9);
   --text-main: #FFFFFF;
-  --text-sub: #9aa5b1;
-  /* АГРЕССИВНАЯ ПРУЖИНА (Jelly Effect) */
-  --spring: cubic-bezier(0.68, -0.6, 0.32, 1.6);
+  --text-sub: #8E8E93;
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
   margin: 0; padding: 0;
-  background: linear-gradient(to bottom, #000c18, #001f3f);
+  background: #000;
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro Text', sans-serif;
   color: var(--text-main);
   -webkit-tap-highlight-color: transparent;
@@ -22,18 +21,18 @@ body {
 
 #root { width: 100%; height: 100%; position: relative; }
 
-/* --- 1. ФОН --- */
+/* --- 1. ФОН (DEEP BLUE SPACE) --- */
 .ambient-wrapper {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  background: radial-gradient(circle at 50% 40%, #002244 0%, #000000 100%);
+  background: radial-gradient(circle at 50% 30%, #003366 0%, #001a33 40%, #000510 100%);
 }
 .orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(70px); opacity: 0.5; mix-blend-mode: screen;
-  animation: floatOrb 14s infinite ease-in-out;
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
+  mix-blend-mode: screen; animation: floatOrb 15s infinite ease-in-out;
 }
-.orb-1 { top: -15%; left: -25%; width: 100vw; height: 100vw; background: radial-gradient(circle, #007AFF 0%, transparent 60%); }
-.orb-2 { bottom: -20%; right: -20%; width: 80vw; height: 80vw; background: radial-gradient(circle, #00C6FF 0%, transparent 60%); animation-delay: -5s; }
+.orb-1 { top: -20%; left: -20%; width: 100vw; height: 100vw; background: radial-gradient(circle, #007AFF, transparent 70%); }
+.orb-2 { bottom: -20%; right: -20%; width: 80vw; height: 80vw; background: radial-gradient(circle, #00C6FF, transparent 70%); }
+
 .snow-container { position: absolute; inset: 0; }
 .snowflake {
   position: absolute; color: #fff; font-size: 1em; opacity: 0.5;
@@ -42,82 +41,82 @@ body {
 @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
 @keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, -20px); } }
 
-/* --- 2. ЛЕЙАУТ (Compact Mode) --- */
+/* --- 2. ЛЕЙАУТ (ИДЕАЛЬНЫЙ ЦЕНТР) --- */
 .app-container { width: 100%; height: 100%; display: flex; flex-direction: column; }
 
 .content-area {
   flex: 1; 
-  /* Отступы минимальны, чтобы влезло */
-  padding: 10px 16px 90px 16px; 
-  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  width: 100%;
+  padding: 10px 0 100px 0; /* Отступ снизу под меню */
+  display: flex; flex-direction: column; align-items: center; /* Центрируем по горизонтали */
   overflow-y: auto; overflow-x: hidden;
 }
+.content-area.centered { justify-content: center; } /* Для Home и Settings - центр по вертикали */
 .content-area::-webkit-scrollbar { display: none; }
-.content-area.centered { justify-content: center; }
 
 .fade-in { animation: slideUp 0.4s var(--spring) forwards; opacity: 0; transform: translateY(20px); }
 @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-/* --- 3. ОСТРОВА С ОБВОДКОЙ (GLOW BORDER) --- */
+/* --- 3. ОСТРОВА (ФИКСИРОВАННАЯ ШИРИНА) --- */
 .island {
-  width: 100%; max-width: 340px;
+  width: 320px; /* Фикс ширина для идеальной ровности */
   background: var(--glass-bg);
-  /* Светящаяся обводка */
-  border: 1px solid rgba(0, 198, 255, 0.3);
-  box-shadow: 0 0 15px rgba(0, 122, 255, 0.15), inset 0 0 20px rgba(0, 122, 255, 0.05);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(35px); -webkit-backdrop-filter: blur(35px);
   border-radius: 32px;
   padding: 20px;
-  display: flex; flex-direction: column; gap: 12px; /* Уменьшил gap */
-  margin-top: 10px;
-  transition: box-shadow 0.3s;
+  display: flex; flex-direction: column; gap: 12px;
+  margin: 0 auto; /* Строго по центру */
 }
 
-/* --- 4. НЕОН И МАСКОТ (PERFECT CIRCLE) --- */
+/* --- 4. МАСКОТ И НЕОН (АККУРАТНЫЙ) --- */
 .mascot-display {
   position: relative; display: flex; justify-content: center; align-items: center;
-  margin: 5px 0 15px 0; height: 140px;
+  margin: 10px 0 20px 0; height: 120px;
 }
 .mascot-glow {
-  position: absolute; width: 130px; height: 130px;
-  border-radius: 50%; /* ИДЕАЛЬНЫЙ КРУГ */
+  position: absolute; 
+  width: 100px; height: 100px; /* Меньше размер */
+  border-radius: 50%; /* Круг */
   background: #007AFF;
-  filter: blur(50px); opacity: 0.7; z-index: 0;
+  filter: blur(40px); opacity: 0.6; z-index: 0;
   animation: breath 4s infinite ease-in-out;
 }
-.mascot-glow.green { background: #32d74b; }
-.mascot-glow.red { background: #ff453a; }
+.mascot-glow.green { background: #32d74b; opacity: 0.5; }
+.mascot-glow.red { background: #ff453a; opacity: 0.5; }
 
 .mascot-main-img {
-  width: 140px; height: auto; z-index: 1;
-  filter: drop-shadow(0 5px 15px rgba(0,0,0,0.4));
+  width: 130px; height: auto; z-index: 1;
+  filter: drop-shadow(0 10px 15px rgba(0,0,0,0.3));
   animation: floatMascot 6s infinite ease-in-out;
 }
-@keyframes breath { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.15); } }
+@keyframes breath { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
 @keyframes floatMascot { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
 
-/* --- 5. ТИПОГРАФИКА --- */
-.welcome-title { font-size: 26px; font-weight: 800; margin: 0; text-align: center; color: #fff; }
-.welcome-text { color: var(--text-sub); font-size: 14px; text-align: center; margin-bottom: 10px; }
+/* --- 5. ТЕКСТЫ --- */
+.welcome-title { font-size: 24px; font-weight: 800; margin: 0; text-align: center; color: #fff; }
+.welcome-text { color: var(--text-sub); font-size: 13px; text-align: center; margin-bottom: 10px; line-height: 1.4; }
 
-/* --- 6. ИНСТРУМЕНТЫ (Compact) --- */
+/* --- 6. ИНСТРУМЕНТЫ --- */
 .tools-header {
-  width: 100%; max-width: 340px; margin: 5px 0 10px 0;
+  width: 320px; margin: 5px auto 10px auto;
   display: flex; flex-direction: column; align-items: center; gap: 10px;
 }
 .ton-badge {
   background: rgba(0, 122, 255, 0.15); border: 1px solid rgba(0, 198, 255, 0.3);
-  padding: 5px 12px; border-radius: 16px; font-size: 13px; font-weight: 700; color: #5AC8FA;
-  box-shadow: 0 0 10px rgba(0,122,255,0.2); display: flex; gap: 5px; align-items: center;
+  padding: 6px 14px; border-radius: 16px; font-size: 13px; font-weight: 700; color: #5AC8FA;
+  box-shadow: 0 0 15px rgba(0,122,255,0.25); display: flex; gap: 6px; align-items: center;
 }
 
+/* Переключатель */
 .segmented-control {
   background: rgba(0,0,0,0.3); border-radius: 14px; padding: 3px;
   display: flex; width: 100%; border: 1px solid rgba(255,255,255,0.05);
 }
 .segment-btn {
   flex: 1; padding: 8px; border: none; background: transparent; color: #8e8e93;
-  font-weight: 600; font-size: 13px; border-radius: 12px; cursor: pointer; transition: 0.2s;
+  font-weight: 600; font-size: 13px; border-radius: 11px; cursor: pointer; transition: 0.2s;
 }
 .segment-btn.active {
   background: rgba(255,255,255,0.15); color: #fff; 
@@ -126,26 +125,25 @@ body {
 
 /* --- КАЛЬКУЛЯТОР (СЖАТЫЙ) --- */
 .screen {
-  font-size: 46px; font-weight: 300; text-align: right; 
-  height: 50px; /* Уменьшил высоту */
-  text-shadow: 0 0 20px rgba(255,255,255,0.2); padding-right: 5px; margin-bottom: 5px;
+  font-size: 44px; font-weight: 300; text-align: right; 
+  height: 50px; /* Компактная высота */
+  text-shadow: 0 0 20px rgba(255,255,255,0.2); padding-right: 5px; margin-bottom: 8px;
   display: flex; align-items: flex-end; justify-content: flex-end;
 }
-.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; /* Меньше зазор */ }
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
 
 .btn {
-  height: 52px; /* Уменьшил высоту кнопок */
+  height: 50px; /* Компактные кнопки */
   border-radius: 14px; font-size: 22px; color: #fff;
   display: flex; justify-content: center; align-items: center; cursor: pointer;
   background: rgba(255,255,255,0.05); 
-  border-top: 1px solid rgba(255,255,255,0.15);
-  border-bottom: 1px solid rgba(0,0,0,0.2);
-  transition: transform 0.4s var(--spring); /* Пружина */
+  border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(0,0,0,0.2);
+  transition: transform 0.2s var(--spring);
 }
-.btn:active { transform: scale(0.85); background: rgba(255,255,255,0.15); }
+.btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
 
-.op-btn { background: rgba(0,122,255,0.15); color: #5AC8FA; border-top: 1px solid rgba(90,200,250,0.3); }
-.clean-btn { color: #FF453A; background: rgba(255,69,58,0.15); border-top: 1px solid rgba(255,69,58,0.3); }
+.op-btn { background: rgba(0,122,255,0.15); color: #5AC8FA; }
+.clean-btn { color: #FF453A; background: rgba(255,69,58,0.15); }
 .neon-btn { 
   background: linear-gradient(135deg, #007AFF, #0055b3);
   box-shadow: 0 0 20px rgba(0,122,255,0.4); border: none; border-top: 1px solid rgba(255,255,255,0.3);
@@ -155,7 +153,7 @@ body {
 /* INPUTS */
 .glass-input {
   width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 12px; color: #fff; font-size: 16px; outline: none; text-align: center;
+  border-radius: 14px; padding: 12px; color: #fff; font-size: 15px; outline: none; text-align: center;
   box-sizing: border-box; transition: 0.3s;
 }
 .glass-input:focus { border-color: var(--primary); background: rgba(0,122,255,0.1); }
@@ -167,37 +165,36 @@ body {
 .donate-btn {
   background: linear-gradient(135deg, #FFD700, #FFA500); border: none; color: #000;
   border-radius: 12px; padding: 0 16px; font-weight: 800; cursor: pointer;
-  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); transition: transform 0.3s var(--spring);
+  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); transition: transform 0.2s var(--spring);
 }
-.donate-btn:active { transform: scale(0.9); }
+.donate-btn:active { transform: scale(0.95); }
 
 /* FLIP RESULT */
 .result-card {
   text-align: center; background: rgba(255,255,255,0.04); border-radius: 18px; padding: 15px;
   border: 1px solid rgba(255,255,255,0.08); margin-top: 5px;
 }
-.res-val { font-size: 32px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 25px rgba(0, 122, 255, 0.4); }
+.res-val { font-size: 30px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 20px rgba(0, 122, 255, 0.4); }
 
 /* SETTINGS */
-.settings-list { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; margin-top: 10px; }
+.settings-list { width: 320px; display: flex; flex-direction: column; gap: 10px; margin: 20px auto; }
 .setting-item {
-  background: var(--glass-bg); border: 1px solid rgba(0,198,255,0.2); /* Легкое свечение */
-  border-radius: 18px; padding: 16px; display: flex; justify-content: space-between; align-items: center;
-  color: #fff; font-size: 15px; font-weight: 600; cursor: pointer; transition: 0.2s;
+  background: var(--glass-bg); border: 1px solid var(--glass-border);
+  border-radius: 20px; padding: 16px; display: flex; justify-content: space-between; align-items: center;
+  color: #fff; font-size: 15px; font-weight: 500; cursor: pointer;
 }
-.setting-item:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
 
-/* --- НИЖНЕЕ МЕНЮ --- */
+/* --- НИЖНЕЕ МЕНЮ (ЦЕНТРОВКА) --- */
 .bottom-nav {
-  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-  width: 310px; height: 65px;
+  position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+  width: 320px; height: 70px;
   background: var(--nav-bg);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
+  backdrop-filter: blur(40px);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 40px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 35px; box-sizing: border-box; z-index: 1000;
-  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
+  padding: 0 40px; box-sizing: border-box; z-index: 1000;
+  box-shadow: 0 15px 40px rgba(0,0,0,0.6);
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -206,7 +203,7 @@ body {
 }
 .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; stroke: currentColor; stroke-width: 2; fill: none; transition: 0.3s; }
 .nav-item.active { color: #fff; }
-.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 8px #00C6FF); transform: translateY(-3px); }
+.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 8px #00C6FF); transform: translateY(-2px); }
 
 /* Center Button */
 .center-btn-wrapper { position: relative; top: -25px; }
@@ -214,9 +211,9 @@ body {
   width: 60px; height: 60px;
   background: linear-gradient(135deg, #007AFF, #00C6FF);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.6), inset 0 2px 0 rgba(255,255,255,0.4);
-  border: 5px solid #001225; /* Цвет фона меню */
-  transition: transform 0.4s var(--spring);
+  box-shadow: 0 8px 25px rgba(0, 122, 255, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+  border: 5px solid #080f1e; /* Цвет подложки для маскировки */
+  transition: transform 0.3s var(--spring);
 }
 .center-btn svg { width: 28px; height: 28px; stroke: #fff; stroke-width: 2; fill: none; }
-.center-btn:active { transform: scale(0.8); }
+.center-btn:active { transform: scale(0.9); }

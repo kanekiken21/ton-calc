@@ -2,37 +2,37 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// ИКОНКИ (Rounded Outline)
+// ИКОНКИ
 const IconHome = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
 const IconTools = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>;
 const IconSettings = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
 
 const t = {
   en: { 
-    welcome: "Welcome!", sub: "Your ultimate TON utility tool.", 
-    donateTitle: "Support Dev", donatePh: "Amount", send: "SEND",
+    welcome: "Welcome!", sub: "Estimate profits and check TON price instantly.", 
+    donateTitle: "Support Developer", donatePh: "Amount (TON)", send: "SEND",
     nav_home: "Home", nav_app: "App", nav_set: "Settings",
-    calc: "Calc", flip: "Flip", 
-    buy: "Buy", sell: "Sell", custom: "Custom %",
+    calc: "Calculator", flip: "NFT Flip", 
+    buy: "Buy Price", sell: "Sell Price", custom: "Custom %",
     net: "Net Profit",
-    sets: "Settings", news: "News", lang: "Language" 
+    sets: "Settings", news: "News Channel", lang: "Language" 
   },
   ru: { 
-    welcome: "Привет!", sub: "Твой главный инструмент для TON.", 
-    donateTitle: "Поддержать", donatePh: "Сумма", send: "ОТПРАВИТЬ",
-    nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настр.",
-    calc: "Кальк", flip: "Флип", 
+    welcome: "Привет!", sub: "Считай профит и курс TON моментально.", 
+    donateTitle: "Поддержать автора", donatePh: "Сумма (TON)", send: "ОТПРАВИТЬ",
+    nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настройки",
+    calc: "Калькулятор", flip: "NFT Флип", 
     buy: "Покупка", sell: "Продажа", custom: "Свой %",
-    net: "Профит",
+    net: "Чистый профит",
     sets: "Настройки", news: "Новости", lang: "Язык" 
   },
   ua: { 
-    welcome: "Привіт!", sub: "Твій головний інструмент для TON.", 
-    donateTitle: "Підтримати", donatePh: "Сума", send: "НАДІСЛАТИ",
+    welcome: "Привіт!", sub: "Рахуй профіт та курс TON миттєво.", 
+    donateTitle: "Підтримати автора", donatePh: "Сума (TON)", send: "НАДІСЛАТИ",
     nav_home: "Головна", nav_app: "Утиліти", nav_set: "Налашт.",
-    calc: "Кальк", flip: "Фліп", 
+    calc: "Калькулятор", flip: "NFT Фліп", 
     buy: "Купівля", sell: "Продаж", custom: "Свій %",
-    net: "Профіт",
+    net: "Чистий профіт",
     sets: "Налаштування", news: "Новини", lang: "Мова" 
   }
 }
@@ -44,13 +44,11 @@ function App() {
   const [tonPrice, setTonPrice] = useState('...');
   const [snowflakes, setSnowflakes] = useState([]);
 
-  // Calc States
   const [display, setDisplay] = useState('0');
   const [waiting, setWaiting] = useState(false);
   const [op, setOp] = useState(null);
   const [memory, setMemory] = useState(null);
 
-  // Flip & Donate States
   const [buy, setBuy] = useState('');
   const [sell, setSell] = useState('');
   const [feeType, setFeeType] = useState('std');
@@ -62,7 +60,7 @@ function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.setHeaderColor('#000c18');
+      window.Telegram.WebApp.setHeaderColor('#000510');
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') setLang('ru');
@@ -73,7 +71,7 @@ function App() {
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.50'));
 
-    setSnowflakes(Array.from({ length: 30 }).map((_, i) => ({
+    setSnowflakes(Array.from({ length: 40 }).map((_, i) => ({
       id: i, left: Math.random()*100+'%', delay: Math.random()*5+'s', dur: Math.random()*5+5+'s'
     })));
   }, []);
@@ -97,7 +95,6 @@ function App() {
     finally { setIsDonating(false); }
   }
 
-  // Calc Logic
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -116,7 +113,6 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // Flip Logic
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -135,7 +131,6 @@ function App() {
       <div className="ambient-wrapper">
          <div className="orb orb-1"></div>
          <div className="orb orb-2"></div>
-         <div className="orb orb-3"></div>
          <div className="snow-container">
             {snowflakes.map((s,i)=>(<div key={i} className="snowflake" style={{left:s.left, animationDuration:s.dur, animationDelay:s.delay}}>❄</div>))}
          </div>
@@ -214,7 +209,7 @@ function App() {
                       <button className={`segment-btn ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
                       <button className={`segment-btn ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
                    </div>
-                   {feeType==='custom' && <input className="glass-input" placeholder="Fee %" value={customFee} onChange={e=>setCustomFee(e.target.value)}/>}
+                   {feeType==='custom' && <input className="glass-input" placeholder="%" value={customFee} onChange={e=>setCustomFee(e.target.value)}/>}
                    
                    {profit !== null && (
                       <div className="result-card">
