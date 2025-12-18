@@ -3,9 +3,9 @@ import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
 const t = {
-  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новости', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек', welcomeBtn: 'Погнали!' },
-  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet', welcomeBtn: "Let's Go!" },
-  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новини', donate: 'Донат', donatePlaceholder: 'Сума (TON)', wallet: 'Гаманець', welcomeBtn: 'Поїхали!' }
+  ru: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купил', sell: 'Продал', profit: 'Прибыль', sets: 'Настройки', close: 'Закрыть', custom: 'Своя (%)', news: 'Новостной канал', donate: 'Донат', donatePlaceholder: 'Сумма (TON)', wallet: 'Кошелек', welcomeBtn: 'Начать!', welcomeDesc: 'Считай профит, комиссии и курс TON в одном месте.' },
+  en: { calc: 'Calculator', flip: 'Flip NFT', buy: 'Buy Price', sell: 'Sell Price', profit: 'Net Profit', sets: 'Settings', close: 'Close', custom: 'Custom (%)', news: 'News Channel', donate: 'Donate', donatePlaceholder: 'Amount (TON)', wallet: 'Wallet', welcomeBtn: "Get Started", welcomeDesc: 'Calculate profits, fees and TON price in one place.' },
+  ua: { calc: 'Калькулятор', flip: 'Flip NFT', buy: 'Купив', sell: 'Продав', profit: 'Прибуток', sets: 'Налаштування', close: 'Закрити', custom: 'Своя (%)', news: 'Новинний канал', donate: 'Донат', donatePlaceholder: 'Сума (TON)', wallet: 'Гаманець', welcomeBtn: 'Почати!', welcomeDesc: 'Рахуй профіт, комісії та курс TON в одному місці.' }
 }
 
 function App() {
@@ -17,6 +17,7 @@ function App() {
   const [tonPrice, setTonPrice] = useState(null)
   const [snowflakes, setSnowflakes] = useState([])
 
+  // Calculator Logic States
   const [isDonating, setIsDonating] = useState(false)
   const [donateAmount, setDonateAmount] = useState('')
   const [buy, setBuy] = useState('')
@@ -39,17 +40,17 @@ function App() {
       else if (userLang === 'uk') setLang('ua');
     }
 
-    const hasVisited = localStorage.getItem('hasMetTony');
+    const hasVisited = localStorage.getItem('hasMetTonyV2'); // New key for V2 welcome
     if (!hasVisited) setShowWelcome(true);
 
-    // Снег (50 снежинок разного размера)
-    const flakes = Array.from({ length: 50 }).map((_, i) => ({
+    // 40 снежинок для новогоднего настроения
+    const flakes = Array.from({ length: 40 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100 + '%',
-      animDuration: Math.random() * 5 + 5 + 's',
+      animDuration: Math.random() * 5 + 8 + 's',
       animDelay: Math.random() * 5 + 's',
       opacity: Math.random() * 0.7 + 0.3,
-      size: Math.random() * 5 + 3 + 'px'
+      size: Math.random() * 4 + 3 + 'px'
     }));
     setSnowflakes(flakes);
 
@@ -61,14 +62,13 @@ function App() {
   }, [])
 
   const closeWelcome = () => {
-    localStorage.setItem('hasMetTony', 'true');
+    localStorage.setItem('hasMetTonyV2', 'true');
     setShowWelcome(false);
   }
 
   const safeOpenLink = (url) => {
     const tg = window.Telegram?.WebApp;
     if (tg && url.startsWith('https://t.me/')) tg.openTelegramLink(url);
-    else if (tg) tg.openLink(url);
     else window.open(url, '_blank');
   };
 
@@ -117,10 +117,9 @@ function App() {
   return (
     <>
       <div className="ambient-bg">
-        {/* Сферы */}
         <div className="orb orb-1"></div>
         <div className="orb orb-2"></div>
-        {/* Снег */}
+        <div className="orb orb-3"></div>
         <div className="snow-container">
           {snowflakes.map(f => (
             <div key={f.id} className="snowflake" style={{
@@ -136,19 +135,20 @@ function App() {
         </div>
       )}
 
+      {/* ПРИВЕТСТВИЕ ПО ЦЕНТРУ */}
       {!loading && showWelcome && (
         <div className="welcome-overlay">
            <div className="welcome-content">
               <img src="/img/chibi-happy.png" className="welcome-img" alt="Tony" />
-              <h2>Hi, I'm Tony! 💎</h2>
-              <button className="btn neon-btn" style={{marginTop:'20px', borderRadius:'16px', width:'100%'}} onClick={closeWelcome}>
+              <h1 className="welcome-title">my TON Calc</h1>
+              <p className="welcome-desc">{t[lang].welcomeDesc}</p>
+              <button className="btn neon-btn" style={{width:'100%', borderRadius:'18px'}} onClick={closeWelcome}>
                 {t[lang].welcomeBtn}
               </button>
            </div>
         </div>
       )}
 
-      {/* Основной контейнер без блюра при настройках, чтобы не было багов с z-index */}
       <div className="island-wrapper">
         <div className="island">
           
@@ -157,8 +157,11 @@ function App() {
               <img src="/img/logo-v2.png" alt="Logo" className="logo-v2" />
               <div className="brand-text">
                  <span className="app-title">my TON Calc</span>
-                 <div className="ton-price">💎 {tonPrice ? `$${tonPrice}` : '...'}</div>
               </div>
+            </div>
+            {/* КУРС TON В КРАСИВОМ МЕСТЕ */}
+            <div className="price-badge">
+              <span>💎</span> {tonPrice ? `${tonPrice}` : '...'}
             </div>
             <div className="settings-btn" onClick={()=>setShowSettings(true)}>⚙️</div>
           </div>
@@ -168,34 +171,37 @@ function App() {
             <button className={`tab ${mode==='flip'?'active':''}`} onClick={()=>setMode('flip')}>{t[lang].flip}</button>
           </div>
 
+          {/* МОДАЛЬНОЕ ОКНО НАСТРОЕК (ИСПРАВЛЕНО) */}
           {showSettings && (
             <div className="modal-overlay">
               <div className="modal-content">
-                  <h3 style={{color:'white', textAlign:'center', marginTop:0}}>{t[lang].sets}</h3>
+                  <h3 style={{color:'white', textAlign:'center', marginTop:0, fontSize:'20px'}}>{t[lang].sets}</h3>
                   <div style={{display:'flex', justifyContent:'center', marginBottom:'20px'}}>
                     <TonConnectButton />
                   </div>
                   
-                  <div style={{display:'flex', gap:'10px', marginBottom:'15px'}}>
+                  <div style={{display:'flex', gap:'8px', marginBottom:'20px'}}>
                     <button className={`tab ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
                     <button className={`tab ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
                     <button className={`tab ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
                   </div>
 
-                  <button className="menu-btn" onClick={()=>safeOpenLink('https://t.me/mytoncalculator')}>
-                    <span>📢 {t[lang].news}</span> <span>↗</span>
-                  </button>
+                  {/* ОСОБЫЕ КНОПКИ */}
+                  <div className="special-btn" onClick={()=>safeOpenLink('https://t.me/mytoncalculator')}>
+                    <span style={{display:'flex', gap:'10px', alignItems:'center'}}>📢 {t[lang].news}</span> 
+                    <span className="special-icon">↗</span>
+                  </div>
 
-                  <div style={{display:'flex', gap:'10px'}}>
-                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px', height:'auto', margin:0}} 
+                  <div className="donate-row">
+                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px', margin:0, flex:1}} 
                             placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
-                     <button className="menu-btn" style={{width:'60px', marginBottom:0, background:'#FFD700', color:'#000', justifyContent:'center', fontWeight:'bold'}} onClick={handleDonate}>
+                     <button className="donate-btn special-btn" onClick={handleDonate}>
                         {isDonating ? '...' : '⭐️'}
                      </button>
                   </div>
 
-                  <button className="btn clean-btn" style={{marginTop:'20px', width:'100%', height:'50px', fontSize:'18px'}} onClick={()=>setShowSettings(false)}>
-                    ✕ {t[lang].close}
+                  <button className="btn clean-btn" style={{marginTop:'25px', width:'100%', height:'52px', fontSize:'18px'}} onClick={()=>setShowSettings(false)}>
+                    {t[lang].close}
                   </button>
               </div>
             </div>
@@ -234,11 +240,9 @@ function App() {
 
           {mode === 'flip' && (
             <div className="flip-cont">
-              <div className="label">{t[lang].buy} (TON)</div>
-              <input type="number" className="glass-input" placeholder="0" value={buy} onChange={e=>setBuy(e.target.value)} />
+              <input type="number" className="glass-input" placeholder={`${t[lang].buy} (TON)`} value={buy} onChange={e=>setBuy(e.target.value)} />
               
-              <div className="label">{t[lang].sell} (TON)</div>
-              <input type="number" className="glass-input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
+              <input type="number" className="glass-input" placeholder={`${t[lang].sell} (TON)`} value={sell} onChange={e=>setSell(e.target.value)} />
 
               <div style={{display:'flex', gap:'8px'}}>
                 <button className={`tab ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
@@ -251,12 +255,13 @@ function App() {
               {profit !== null ? (
                 <>
                   <div className="result">
-                    <div style={{fontSize:'12px', color:'#aaa'}}>{t[lang].profit}</div>
+                    <div style={{fontSize:'12px', color:'#8e8e93'}}>{t[lang].profit}</div>
                     <div className="res-val" style={{color: parseFloat(profit) >= 0 ? '#32d74b' : '#ff453a'}}>
                       {parseFloat(profit)>0?'+':''}{profit} TON
                     </div>
                   </div>
                   <div className="mascot-wrapper">
+                     {/* ИСПРАВЛЕННЫЙ НЕОН (Круг сзади, не квадрат) */}
                      <div className="mascot-glow"></div>
                      <img src={parseFloat(profit) >= 0 ? "/img/chibi-happy.png" : "/img/chibi-sad.png"} className="mascot-img" alt="Tony" />
                   </div>
