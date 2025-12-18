@@ -42,14 +42,14 @@ function App() {
     const hasVisited = localStorage.getItem('hasMetTony');
     if (!hasVisited) setShowWelcome(true);
 
-    // Снег (более заметный)
-    const flakes = Array.from({ length: 35 }).map((_, i) => ({
+    // Снег (50 снежинок разного размера)
+    const flakes = Array.from({ length: 50 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100 + '%',
-      animDuration: Math.random() * 5 + 6 + 's',
+      animDuration: Math.random() * 5 + 5 + 's',
       animDelay: Math.random() * 5 + 's',
       opacity: Math.random() * 0.7 + 0.3,
-      size: Math.random() * 6 + 4 + 'px'
+      size: Math.random() * 5 + 3 + 'px'
     }));
     setSnowflakes(flakes);
 
@@ -117,12 +117,10 @@ function App() {
   return (
     <>
       <div className="ambient-bg">
-        {/* СФЕРЫ (ORBS) */}
+        {/* Сферы */}
         <div className="orb orb-1"></div>
         <div className="orb orb-2"></div>
-        <div className="orb orb-3"></div>
-        
-        {/* СНЕГ */}
+        {/* Снег */}
         <div className="snow-container">
           {snowflakes.map(f => (
             <div key={f.id} className="snowflake" style={{
@@ -150,7 +148,7 @@ function App() {
         </div>
       )}
 
-      {/* Убрал 'blur-bg' из логики, чтобы фон не мылило при настройках, это мешает модалке */}
+      {/* Основной контейнер без блюра при настройках, чтобы не было багов с z-index */}
       <div className="island-wrapper">
         <div className="island">
           
