@@ -1,230 +1,182 @@
 :root {
-  --bg: #000000;
-  --glass: rgba(20, 20, 24, 0.85);
-  --glass-matte: rgba(255, 255, 255, 0.06);
-  --border: rgba(255, 255, 255, 0.1);
-  --neon-blue: #007aff;
+  --primary: #007AFF;
+  --neon-cyan: #00f0ff;
   --neon-purple: #bd00ff;
-  --neon-gold: #ffd700;
-  --text: #ffffff;
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --glass-bg: rgba(20, 20, 30, 0.65);
 }
 
-/* ЗАМОРОЗКА ЭКРАНА */
-html, body {
-  margin: 0; padding: 0;
-  width: 100%; height: 100%;
-  overflow: hidden; 
-  overscroll-behavior: none;
-  background: var(--bg);
-  color: var(--text);
-  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, sans-serif;
-  user-select: none; -webkit-user-select: none;
-  -webkit-tap-highlight-color: transparent;
-  position: fixed; /* Фиксируем намертво */
+body {
+  margin: 0;
+  padding: 0;
+  background-color: #000;
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
+  color: #fff;
+  overflow: hidden;
+  -webkit-tap-highlight-color: transparent; /* Убирает серый фон при тапе на Android */
 }
 
-#root {
-  width: 100%; height: 100%;
-  display: flex; justify-content: center; align-items: center;
-  position: relative; z-index: 1;
-}
-
-/* ФОН (Lava Lamp) */
+/* --- AMBIENT BACKGROUND --- */
 .ambient-bg {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  z-index: -1; overflow: hidden; background: #000;
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1;
+  background: #050505;
+  overflow: hidden;
 }
 .blob {
-  position: absolute; border-radius: 50%;
-  filter: blur(90px); opacity: 0.5;
-  animation: blobMove 10s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.6;
+  animation: float 10s infinite ease-in-out;
 }
-.blob-1 { top: -20%; left: -20%; width: 60vw; height: 60vw; background: var(--neon-blue); animation-duration: 14s; }
-.blob-2 { bottom: -20%; right: -20%; width: 70vw; height: 70vw; background: var(--neon-purple); animation-duration: 18s; animation-delay: -2s; }
-.blob-3 { top: 40%; left: 40%; width: 50vw; height: 50vw; background: rgba(0, 242, 255, 0.2); animation-duration: 20s; animation-direction: alternate-reverse; }
-@keyframes blobMove { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(20px, 40px) scale(1.1); } }
+.blob-1 { top: -10%; left: -10%; width: 300px; height: 300px; background: var(--primary); }
+.blob-2 { bottom: -10%; right: -10%; width: 250px; height: 250px; background: var(--neon-purple); animation-delay: -2s; }
+.blob-3 { top: 40%; left: 40%; width: 200px; height: 200px; background: var(--neon-cyan); opacity: 0.3; animation-delay: -4s; }
 
-/* ОСТРОВ */
-.island-wrapper { position: relative; z-index: 10; }
-.island-glow {
-  position: absolute; inset: 15px; z-index: -1;
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-  filter: blur(45px); opacity: 0.35;
-  animation: pulseGlow 4s infinite alternate;
+@keyframes float {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(20px, -20px); }
 }
-@keyframes pulseGlow { from { opacity: 0.3; transform: scale(0.95); } to { opacity: 0.5; transform: scale(1.02); } }
+
+/* --- SPLASH & WELCOME --- */
+.splash, .welcome-overlay {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  z-index: 9999;
+}
+.splash { background: #000; }
+.splash-logo-img { width: 100px; height: 100px; animation: pulse 2s infinite; }
+.splash-text { font-size: 20px; font-weight: 600; margin-top: 20px; color: #fff; }
+
+.welcome-overlay {
+  background: rgba(0,0,0,0.85);
+  backdrop-filter: blur(20px);
+  z-index: 5000;
+  animation: fadeIn 0.5s;
+}
+.welcome-content { text-align: center; width: 80%; }
+.welcome-video { width: 100%; max-width: 250px; height: auto; margin-bottom: 20px; }
+.welcome-content h2 { margin: 0; font-size: 28px; background: linear-gradient(45deg, #fff, var(--neon-cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+.welcome-content p { color: #aaa; margin-bottom: 30px; }
+
+/* --- ISLAND (MAIN CONTAINER) --- */
+.island-wrapper {
+  display: flex; justify-content: center; align-items: center;
+  height: 100vh; padding: 20px; box-sizing: border-box;
+  transition: filter 0.3s;
+}
+.blur-bg { filter: blur(10px); }
 
 .island {
-  width: 320px;
-  background: var(--glass);
-  backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border: 1px solid var(--border);
-  border-radius: 40px;
-  padding: 24px 20px;
-  box-shadow: 0 40px 100px rgba(0,0,0,0.9), inset 0 1px 1px rgba(255,255,255,0.1);
-  display: flex; flex-direction: column;
+  position: relative; width: 100%; max-width: 380px;
+  background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 0 0 1px rgba(255,255,255,0.05);
+  backdrop-filter: blur(30px); -webkit-backdrop-filter: blur(30px);
+  border-radius: 35px;
+  padding: 25px;
+  display: flex; flex-direction: column; gap: 20px;
 }
 
-/* HEADER */
-.header {
-  display: flex; justify-content: space-between; align-items: center;
-  margin-bottom: 20px; padding: 0 4px;
-}
-.brand { display: flex; flex-direction: column; gap: 2px; }
-.app-title { font-weight: 800; font-size: 16px; letter-spacing: -0.5px; line-height: 1; }
-/* КУРС TON (Вернули) */
-.ton-price { font-size: 11px; font-weight: 600; color: #5ac8fa; display: flex; align-items: center; gap: 4px; }
-.ton-icon { font-size: 10px; }
+/* --- HEADER & V2 LOGO --- */
+.header { display: flex; justify-content: space-between; align-items: center; }
+.brand { display: flex; align-items: center; }
+.logo-v2 { width: 42px; height: 42px; margin-right: 12px; filter: drop-shadow(0 0 10px rgba(0,240,255,0.4)); }
+.app-title { font-weight: 700; font-size: 18px; letter-spacing: 0.5px; }
+.ton-price { font-size: 13px; color: var(--neon-cyan); font-weight: 500; }
+.settings-btn { font-size: 22px; cursor: pointer; padding: 5px; opacity: 0.8; }
 
-.beta {
-  position: absolute; top: 24px; left: 130px; /* Позиционируем рядом с названием */
-  font-size: 9px; font-weight: 800; color: var(--neon-purple);
-  padding: 2px 5px; border-radius: 5px;
-  background: rgba(189, 0, 255, 0.1); border: 1px solid rgba(189, 0, 255, 0.3);
-  box-shadow: 0 0 10px rgba(189, 0, 255, 0.2);
-  animation: neonText 2s infinite alternate;
-}
-@keyframes neonText { from { opacity: 0.8; } to { opacity: 1; text-shadow: 0 0 8px var(--neon-purple); } }
-
-.settings-btn {
-  width: 32px; height: 32px; display: flex; justify-content: center; align-items: center;
-  background: var(--glass-matte); border-radius: 50%; font-size: 18px; cursor: pointer;
-  transition: 0.2s;
-}
-.settings-btn:active { transform: rotate(45deg); background: rgba(255,255,255,0.15); }
-
-/* TABS */
+/* --- TABS --- */
 .tabs {
-  background: rgba(0,0,0,0.3); padding: 4px; border-radius: 16px;
-  display: flex; margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.05);
+  display: flex; background: rgba(0,0,0,0.3); border-radius: 16px; padding: 4px;
 }
 .tab {
-  flex: 1; padding: 10px; border: none; background: none;
-  color: #888; font-weight: 700; font-size: 12px; border-radius: 12px;
-  transition: 0.2s; cursor: pointer; text-transform: uppercase;
+  flex: 1; border: none; background: transparent; color: #888;
+  padding: 10px; border-radius: 12px; font-weight: 600; font-size: 14px;
+  transition: all 0.2s; cursor: pointer;
 }
-.tab.active {
-  background: rgba(255,255,255,0.12); color: white;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.3); text-shadow: 0 0 10px rgba(255,255,255,0.4);
-}
+.tab.active { background: rgba(255,255,255,0.1); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
 
-/* CALCULATOR */
-.screen {
-  width: 100%; text-align: right; 
-  font-size: 60px; font-weight: 200; color: white;
-  margin-bottom: 20px; height: 75px; overflow: hidden; white-space: nowrap;
-  padding-right: 5px; letter-spacing: -2px;
-  text-shadow: 0 0 25px rgba(255,255,255,0.2);
+/* --- BUTTONS & INPUTS (iOS SPRING EFFECT) --- */
+/* Магия пружины */
+.ios-tap {
+  transition: transform 0.1s cubic-bezier(0.34, 1.56, 0.64, 1), background 0.2s;
+  cursor: pointer;
 }
-.keypad { display: grid; grid-template-columns: repeat(4, 60px); gap: 12px; justify-content: center; }
+.ios-tap:active {
+  transform: scale(0.92); /* Сжимается при нажатии */
+}
 
 .btn {
-  width: 60px; height: 60px; border-radius: 50%; border: none;
-  font-size: 26px; color: white; cursor: pointer;
-  background: rgba(255, 255, 255, 0.06);
+  border: none; border-radius: 18px; font-size: 22px; color: #fff;
+  background: rgba(255,255,255,0.06);
   display: flex; justify-content: center; align-items: center;
-  transition: transform 0.1s cubic-bezier(0.3, 0.7, 0.4, 1.5);
-  box-shadow: inset 0 1px 1px rgba(255,255,255,0.08);
+  user-select: none;
 }
-.btn:active { transform: scale(0.85); background: rgba(255, 255, 255, 0.15); }
+.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-top: 10px; }
+.keypad .btn { height: 60px; }
+.zero-btn { grid-column: span 2; }
 
-.btn.blue { color: var(--neon-blue); background: rgba(0, 122, 255, 0.1); }
-.btn.blue:active { background: rgba(0, 122, 255, 0.25); box-shadow: 0 0 20px var(--neon-blue); }
-
-.btn.neon { 
-  background: linear-gradient(135deg, var(--neon-blue), var(--neon-purple));
-  box-shadow: 0 5px 20px rgba(0, 122, 255, 0.4); border: none;
+/* Button Colors */
+.clean-btn { color: #ff453a; background: rgba(255, 69, 58, 0.1); }
+.op-btn { background: rgba(0, 122, 255, 0.15); color: #4facfe; }
+.num-btn { background: rgba(255,255,255,0.04); font-weight: 500; }
+.neon-btn {
+  background: linear-gradient(135deg, var(--primary), var(--neon-purple));
+  box-shadow: 0 4px 15px rgba(0, 122, 255, 0.4);
+  color: #fff; font-weight: 600; border: none; width: 100%; padding: 14px;
 }
-.btn.neon:active { transform: scale(0.9); box-shadow: 0 0 25px var(--neon-blue); }
-.btn.zero { grid-column: span 2; width: 132px; border-radius: 40px; justify-content: flex-start; padding-left: 24px; }
 
-/* FLIP (FIXED WIDTH) */
-.flip-cont { width: 100%; padding: 0 2px; animation: fadeIn 0.3s; }
-.label { font-size: 10px; color: #888; text-transform: uppercase; font-weight: 700; margin-bottom: 6px; margin-left: 8px; }
-
-/* ВАЖНО: box-sizing border-box и width 100% чтобы не вылезало */
-.input {
-  box-sizing: border-box; 
-  width: 100%; 
-  padding: 16px; 
-  background: rgba(0,0,0,0.3);
-  border: 1px solid rgba(255,255,255,0.1); border-radius: 18px;
-  color: white; font-size: 20px; outline: none; margin-bottom: 15px;
-  font-weight: 600; text-align: center; transition: 0.3s;
-  user-select: text; -webkit-user-select: text;
+/* --- INPUTS GLASS --- */
+.input, .glass-input {
+  width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; padding: 15px; border-radius: 16px; font-size: 20px;
+  outline: none; text-align: right; box-sizing: border-box;
+  transition: border 0.2s;
 }
-.input:focus { border-color: var(--neon-blue); box-shadow: 0 0 20px rgba(0, 122, 255, 0.15); }
+.input:focus { border-color: var(--neon-cyan); box-shadow: 0 0 10px rgba(0, 240, 255, 0.1); }
+.screen { font-size: 42px; text-align: right; margin-bottom: 10px; padding: 20px; word-break: break-all; }
 
-.fees { display: flex; gap: 10px; margin-bottom: 15px; }
+/* --- FLIP & MASCOT --- */
+.flip-cont { display: flex; flex-direction: column; gap: 15px; }
+.label { font-size: 13px; color: #888; margin-left: 5px; margin-bottom: -10px; }
+.fees { display: flex; gap: 10px; }
 .fee-chip {
-  flex: 1; padding: 12px; background: rgba(255,255,255,0.05);
-  border: 1px solid transparent; border-radius: 14px;
-  color: #888; font-size: 11px; font-weight: 700; cursor: pointer; text-align: center; transition: 0.2s;
+  flex: 1; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid transparent;
+  color: #aaa; border-radius: 12px; font-size: 13px;
 }
-.fee-chip.active {
-  border-color: var(--neon-blue); color: white; background: rgba(0, 122, 255, 0.15);
-  box-shadow: 0 0 15px rgba(0, 122, 255, 0.2);
-}
-.result {
-  margin-top: 15px; padding: 20px; text-align: center;
-  background: linear-gradient(180deg, rgba(50, 255, 100, 0.06), rgba(0,0,0,0));
-  border: 1px solid rgba(50, 255, 100, 0.2); border-radius: 24px;
-}
-.res-val { font-size: 34px; font-weight: 800; color: #32d74b; text-shadow: 0 0 20px rgba(50,215,75,0.25); }
-.res-sub { font-size: 12px; color: #888; margin-top: 5px; }
+.fee-chip.active { border-color: var(--neon-cyan); color: #fff; background: rgba(0, 240, 255, 0.05); }
 
-/* SETTINGS MODAL (FIXED) */
+.result {
+  text-align: center; padding: 15px; border-radius: 20px;
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05);
+}
+.res-val { font-size: 28px; font-weight: 700; margin: 5px 0; text-shadow: 0 0 20px rgba(0,0,0,0.5); }
+
+.mascot-wrapper {
+  display: flex; justify-content: center; height: 140px; align-items: center;
+  margin-top: 10px;
+}
+.mascot-img { width: 130px; height: auto; animation: popUp 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+
+/* --- MODAL --- */
 .modal-overlay {
-  position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 2000;
-  display: flex; justify-content: center; align-items: center;
-  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-  animation: fadeIn 0.2s ease-out;
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
+  display: flex; align-items: center; justify-content: center; z-index: 2000;
 }
 .modal-content {
-  width: 320px; background: rgba(30, 30, 35, 0.95); 
-  border: 1px solid var(--border);
-  border-radius: 36px; padding: 25px;
-  box-shadow: 0 30px 80px rgba(0,0,0,1);
-  display: flex; flex-direction: column;
+  width: 85%; max-width: 320px; background: #1a1a1a;
+  border-radius: 24px; padding: 25px; border: 1px solid rgba(255,255,255,0.1);
 }
-
-.menu-list { width: 100%; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
-
+.lang-row { display: flex; gap: 10px; margin-bottom: 20px; }
+.lang-chip { flex: 1; padding: 8px; background: #333; border: none; color: #aaa; border-radius: 10px; }
+.lang-chip.active { background: var(--primary); color: #fff; }
 .menu-btn {
-  width: 100%; padding: 16px; border-radius: 18px;
-  background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.05);
-  color: white; font-size: 15px; font-weight: 600; cursor: pointer;
-  display: flex; justify-content: space-between; align-items: center;
-  transition: transform 0.1s;
+  width: 100%; background: #2a2a2a; border: none; color: #fff;
+  padding: 15px; border-radius: 14px; text-align: left; margin-bottom: 10px;
+  display: flex; justify-content: space-between;
 }
-.menu-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
+.gold { background: linear-gradient(45deg, #FFD700, #FFA500); color: #000; font-weight: 600; }
+.close-btn { margin-top: 15px; background: rgba(255,255,255,0.1); width: 100%; }
 
-/* ЗОЛОТАЯ КНОПКА С БЛИКОМ (SHIMMER) */
-.menu-btn.gold {
-  background: rgba(255, 215, 0, 0.1); border-color: rgba(255, 215, 0, 0.2); color: var(--neon-gold);
-  position: relative; overflow: hidden;
-}
-.menu-btn.gold::after {
-  content: ''; position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 215, 0, 0.2), transparent);
-  animation: shimmer 3s infinite;
-}
-@keyframes shimmer { 0% { left: -100%; } 20% { left: 100%; } 100% { left: 100%; } }
-
-.lang-row { display: flex; gap: 8px; width: 100%; }
-.lang-chip {
-  flex: 1; padding: 12px; border-radius: 14px; background: rgba(255,255,255,0.05);
-  border: 1px solid transparent; color: #666; font-weight: 700; font-size: 12px; cursor: pointer;
-  transition: 0.2s;
-}
-.lang-chip.active { border-color: var(--neon-blue); color: white; background: rgba(0, 122, 255, 0.15); }
-
-/* Splash */
-.splash {
-  position: fixed; inset: 0; z-index: 5000; background: #000;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
-  animation: fadeOut 0.5s ease 2.5s forwards;
-}
-.splash-logo { width: 100px; height: 100px; animation: logoBreath 2s infinite alternate; }
-@keyframes fadeOut { to { opacity: 0; visibility: hidden; } }
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); opacity: 0.8; } 100% { transform: scale(1); } }
+@keyframes popUp { from { transform: scale(0) translateY(50px); } to { transform: scale(1) translateY(0); } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
