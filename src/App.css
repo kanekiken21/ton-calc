@@ -1,12 +1,10 @@
 :root {
-  /* Новая палитра: Лед и Неон */
   --primary: #007AFF;
-  --ice-bg: rgba(255, 255, 255, 0.08); /* Эффект льда */
-  --ice-border: rgba(255, 255, 255, 0.15);
-  --ice-highlight: rgba(255, 255, 255, 0.2);
-  --deep-blue-bg: radial-gradient(120% 120% at 50% 10%, #0a1f35 0%, #000510 100%);
-  --neon-glow: 0 0 20px rgba(0, 122, 255, 0.4);
-  --spring: cubic-bezier(0.25, 1.6, 0.5, 1); /* Пружина v2.0 */
+  --neon-cyan: #00f0ff;
+  --glass-surface: rgba(255, 255, 255, 0.1);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-highlight: rgba(255, 255, 255, 0.5);
+  --spring: cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
 body {
@@ -15,185 +13,214 @@ body {
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', sans-serif;
   color: #fff; overflow: hidden;
   width: 100vw; height: 100vh;
+  /* Центрирование всего приложения */
   display: flex; justify-content: center; align-items: center;
   -webkit-tap-highlight-color: transparent;
 }
 
 #root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* --- ФОН И СНЕГ --- */
+/* --- 1. ФОН: СФЕРЫ + СНЕГ --- */
 .ambient-bg {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1;
-  background: var(--deep-blue-bg);
+  background: radial-gradient(circle at 50% 50%, #0d1b2a 0%, #000000 100%);
+  overflow: hidden;
 }
 
-/* Снег теперь виден */
+/* Летающие сферы (Orbs) */
+.orb {
+  position: absolute; border-radius: 50%;
+  filter: blur(60px); opacity: 0.6;
+  animation: floatOrb 15s infinite ease-in-out;
+}
+.orb-1 {
+  top: 10%; left: 10%; width: 250px; height: 250px;
+  background: #007AFF;
+}
+.orb-2 {
+  bottom: 20%; right: 10%; width: 200px; height: 200px;
+  background: #00f0ff; animation-delay: -5s;
+}
+.orb-3 {
+  top: 40%; left: 40%; width: 150px; height: 150px;
+  background: #7000ff; opacity: 0.4; animation-delay: -8s;
+}
+
+/* Снег */
 .snow-container {
-  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none; overflow: hidden;
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none;
 }
 .snowflake {
-  position: absolute; color: #fff; opacity: 0.6;
-  text-shadow: 0 0 5px rgba(255,255,255,0.8);
+  position: absolute; color: #fff; 
+  text-shadow: 0 0 5px white;
   animation: fall linear infinite;
-  z-index: 0;
+}
+
+@keyframes floatOrb {
+  0%, 100% { transform: translate(0, 0); }
+  50% { transform: translate(30px, -40px) scale(1.1); }
 }
 @keyframes fall {
-  0% { transform: translateY(-10vh) translateX(-10px) rotate(0deg); opacity: 0.8; }
-  100% { transform: translateY(110vh) translateX(10px) rotate(360deg); opacity: 0; }
+  0% { transform: translateY(-10vh) translateX(-5px); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(110vh) translateX(5px); opacity: 0.2; }
 }
 
-/* --- SPLASH & WELCOME (ИСПРАВЛЕНО ЦЕНТРИРОВАНИЕ) --- */
-.splash, .welcome-overlay {
-  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
-  z-index: 9999;
-  display: flex; flex-direction: column; align-items: center; justify-content: center; /* Строго по центру */
-}
-.splash { background: #000510; }
-.splash-logo-img { width: 120px; animation: pulse 2s infinite; filter: drop-shadow(0 0 40px #007AFF); }
-
-.welcome-overlay {
-  background: rgba(0, 5, 16, 0.9);
-  backdrop-filter: blur(20px);
-  animation: fadeIn 0.5s;
-}
-.welcome-content {
-  text-align: center; width: 85%; max-width: 320px;
-  display: flex; flex-direction: column; align-items: center; /* Центрируем кота и текст */
-}
-.welcome-img {
-  width: 180px; margin-bottom: 20px;
-  filter: drop-shadow(0 0 50px rgba(0,122,255,0.6)); /* Сильный неон */
-  animation: floatCat 4s infinite ease-in-out;
-}
-.welcome-content h2 { 
-  font-size: 28px; background: linear-gradient(to right, #fff, #4facfe); 
-  -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin: 10px 0;
-}
-
-/* --- ISLAND (Компактный и Стеклянный) --- */
+/* --- 2. КОНТЕЙНЕР (ОСТРОВ) --- */
 .island-wrapper {
-  width: 100%; height: 100%; padding: 10px; box-sizing: border-box;
+  width: 100%; height: 100%;
   display: flex; justify-content: center; align-items: center;
+  padding: 10px; box-sizing: border-box;
 }
-.blur-bg { filter: blur(15px) brightness(0.6); transform: scale(0.95); transition: 0.4s; }
+.blur-bg { filter: blur(10px) brightness(0.5); transform: scale(0.98); transition: 0.3s; }
 
 .island {
-  position: relative; width: 100%; max-width: 340px; /* Уменьшил ширину */
-  background: rgba(20, 30, 50, 0.5); /* Синеватое стекло */
-  border: 1px solid var(--ice-border);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.6), inset 0 0 20px rgba(0, 122, 255, 0.1);
+  position: relative; width: 100%; max-width: 360px;
+  /* Более светлое стекло для контраста с черным фоном */
+  background: rgba(30, 40, 60, 0.4); 
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 0 0 1px rgba(255,255,255,0.05);
   backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
-  border-radius: 36px;
-  padding: 20px; /* Уменьшил отступы */
-  display: flex; flex-direction: column; gap: 12px;
+  border-radius: 38px;
+  padding: 20px;
+  display: flex; flex-direction: column; 
+  gap: 10px; /* Уменьшил gap чтобы влезало */
+  /* Важно: max-height для мобилок */
+  max-height: 95vh;
 }
 
-/* --- HEADER --- */
-.header { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; }
-.logo-v2 { width: 36px; filter: drop-shadow(0 0 15px #007AFF); margin-right: 10px; }
-.app-title { font-weight: 700; font-size: 17px; letter-spacing: 0.5px; }
-.ton-price { font-size: 13px; color: #4facfe; font-weight: 600; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); }
+/* --- 3. ХЕДЕР --- */
+.header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+.brand { display: flex; align-items: center; }
+.logo-v2 { width: 34px; height: 34px; margin-right: 10px; filter: drop-shadow(0 0 10px #007AFF); }
+.app-title { font-weight: 700; font-size: 16px; letter-spacing: 0.5px; }
+.ton-price { font-size: 13px; color: #4facfe; font-weight: 600; text-shadow: 0 0 10px rgba(79, 172, 254, 0.5); margin-top: 2px;}
 .settings-btn { 
   font-size: 18px; width: 36px; height: 36px; border-radius: 12px;
-  background: var(--ice-bg); border: 1px solid var(--ice-border);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
   display: flex; justify-content: center; align-items: center; cursor: pointer;
 }
 
-/* --- TABS --- */
+/* --- 4. ВКЛАДКИ --- */
 .tabs {
-  background: rgba(0,0,0,0.3); border-radius: 16px; padding: 4px; display: flex; gap: 4px;
+  background: rgba(0,0,0,0.4); border-radius: 16px; padding: 4px; display: flex; gap: 4px;
 }
 .tab {
   flex: 1; padding: 10px; border: none; background: transparent; color: #888;
-  font-weight: 600; font-size: 13px; border-radius: 12px; transition: 0.3s; cursor: pointer;
+  font-weight: 600; font-size: 13px; border-radius: 12px; transition: 0.3s;
 }
 .tab.active { 
-  background: var(--ice-bg); color: #fff; border: 1px solid var(--ice-border);
-  box-shadow: 0 0 15px rgba(0,122,255,0.15);
+  background: rgba(255,255,255,0.1); color: #fff; 
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
 }
 
-/* --- MATTE GLASS BUTTONS (Пружина + Лед) --- */
-.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 5px; }
+/* --- 5. КНОПКИ (GLOSSY GLASS) --- */
+.keypad { 
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; 
+  margin-top: auto; /* Прижимаем к низу */
+}
+
 .btn {
-  height: 60px; /* Чуть меньше */
-  border: 1px solid var(--ice-border);
+  height: 58px; /* Оптимально для iPhone */
   border-radius: 18px; font-size: 22px; color: #fff;
   display: flex; justify-content: center; align-items: center;
-  position: relative; overflow: hidden;
-  transition: transform 0.15s var(--spring), background 0.2s;
-  cursor: pointer;
+  position: relative; overflow: hidden; cursor: pointer;
+  transition: transform 0.1s var(--spring);
+  
+  /* СТЕКЛЯННЫЙ СТИЛЬ (МАТОВОСТЬ + БЛИКИ) */
+  background: rgba(255, 255, 255, 0.07); /* Более светлая база */
+  backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(255,255,255,0.25); /* Блик сверху */
+  border-bottom: 1px solid rgba(0,0,0,0.2); /* Тень снизу */
+  border-left: 1px solid rgba(255,255,255,0.05);
+  border-right: 1px solid rgba(255,255,255,0.05);
+  box-shadow: inset 0 0 20px rgba(255,255,255,0.02); /* Внутреннее свечение */
 }
 
-/* Эффект нажатия */
-.btn:active { transform: scale(0.9); border-color: rgba(255,255,255,0.4); }
+.btn:active { transform: scale(0.92); background: rgba(255,255,255,0.15); }
 
-/* Стили кнопок */
-.num-btn { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(5px); } /* Матовое стекло */
-.op-btn { background: rgba(0, 122, 255, 0.15); color: #6dd5fa; border-color: rgba(0, 122, 255, 0.3); }
-.clean-btn { background: rgba(255, 59, 48, 0.15); color: #ff6b6b; border-color: rgba(255, 59, 48, 0.3); font-weight: 600; }
-.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 28px; }
-
+/* Акцентные кнопки */
+.op-btn { 
+  background: rgba(0, 122, 255, 0.15); color: #6dd5fa; 
+  border-top: 1px solid rgba(0, 122, 255, 0.4);
+}
+.clean-btn { 
+  background: rgba(255, 59, 48, 0.15); color: #ff6b6b; 
+  border-top: 1px solid rgba(255, 59, 48, 0.4); font-weight: 600;
+}
 .neon-btn {
   background: linear-gradient(135deg, #007AFF, #0055b3);
-  box-shadow: 0 4px 20px rgba(0, 122, 255, 0.5);
-  border: none; font-weight: 600;
+  box-shadow: 0 5px 20px rgba(0, 122, 255, 0.4);
+  border: none; border-top: 1px solid rgba(255,255,255,0.3);
 }
+.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 25px; }
 
-/* --- INPUTS & SCREEN --- */
+/* --- 6. ИНПУТЫ И ЭКРАН --- */
 .screen {
-  font-size: 52px; font-weight: 200; text-align: right;
-  padding: 0 10px; height: 65px; margin-bottom: 5px;
-  display: flex; align-items: flex-end; justify-content: flex-end;
+  font-size: 50px; font-weight: 200; text-align: right;
+  padding: 0 10px; margin: 10px 0;
+  height: 60px; /* Фикс высоты */
   text-shadow: 0 0 20px rgba(255,255,255,0.3);
+  display: flex; align-items: flex-end; justify-content: flex-end;
 }
 
 .flip-cont { display: flex; flex-direction: column; gap: 12px; }
 .glass-input {
-  width: 100%; background: rgba(0,0,0,0.2); border: 1px solid var(--ice-border);
-  color: #fff; padding: 15px; border-radius: 16px; font-size: 20px;
-  outline: none; text-align: right; box-sizing: border-box; transition: 0.3s;
+  width: 100%; background: rgba(0,0,0,0.3); 
+  border: 1px solid rgba(255,255,255,0.1);
+  color: #fff; padding: 14px; border-radius: 16px; font-size: 20px;
+  outline: none; text-align: right; box-sizing: border-box;
 }
 .glass-input:focus { 
-  border-color: #4facfe; background: rgba(0, 122, 255, 0.1); 
-  box-shadow: 0 0 15px rgba(0, 122, 255, 0.2);
+  border-color: #007AFF; box-shadow: 0 0 15px rgba(0,122,255,0.3); 
+  background: rgba(0,0,0,0.5);
 }
 
-.label { font-size: 12px; color: #888; margin-left: 5px; margin-bottom: -8px; }
-
-/* --- RESULT & MASCOT --- */
 .result {
   text-align: center; padding: 15px; border-radius: 20px;
-  background: rgba(255,255,255,0.03); border: 1px solid var(--ice-border);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
 }
-.res-val { font-size: 32px; font-weight: 700; margin: 5px 0; text-shadow: 0 0 30px rgba(0, 122, 255, 0.5); }
+.res-val { font-size: 32px; font-weight: 700; margin: 5px 0; text-shadow: 0 0 25px rgba(0, 122, 255, 0.4); }
 
+/* --- 7. МАСКОТ (ЦЕНТРОВКА) --- */
 .mascot-wrapper {
-  position: relative; height: 140px; display: flex; justify-content: center; align-items: center;
+  position: relative; height: 130px; 
+  display: flex; justify-content: center; align-items: center;
 }
 .mascot-glow {
-  position: absolute; width: 100px; height: 100px; background: #007AFF;
-  filter: blur(60px); opacity: 0.5; animation: breath 3s infinite;
+  position: absolute; width: 90px; height: 90px; background: #007AFF;
+  filter: blur(50px); opacity: 0.6; animation: breath 3s infinite;
 }
-.mascot-img { width: 140px; z-index: 2; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.5)); animation: popUp 0.6s var(--spring); }
+.mascot-img { width: 130px; position: relative; z-index: 2; animation: popUp 0.6s var(--spring); }
 
-/* --- MODAL (ИСПРАВЛЕНО) --- */
+/* --- 8. НАСТРОЙКИ (ИСПРАВЛЕН БАГ ЧЕРНОГО КВАДРАТА) --- */
 .modal-overlay {
-  background: rgba(0, 5, 16, 0.85); backdrop-filter: blur(25px);
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  background: rgba(0, 0, 0, 0.85); /* Темнее фон */
+  backdrop-filter: blur(15px); /* Блюр всего фона */
+  z-index: 10000; /* Самый верхний слой */
+  display: flex; align-items: center; justify-content: center;
 }
 .modal-content {
-  background: #0d1620; border: 1px solid rgba(0, 122, 255, 0.2);
-  box-shadow: 0 0 50px rgba(0, 122, 255, 0.15);
+  width: 85%; max-width: 320px; 
+  background: #141414; /* Сплошной цвет, чтобы не просвечивало "остров" */
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 24px; padding: 25px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.9);
 }
 
 .menu-btn {
-  background: rgba(255,255,255,0.04); border: 1px solid var(--ice-border);
-  border-radius: 16px; padding: 16px; width: 100%; color: #fff;
+  background: #222; border: 1px solid rgba(255,255,255,0.05);
+  border-radius: 14px; padding: 15px; width: 100%; color: #fff;
   display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;
-  transition: 0.2s;
 }
-.menu-btn:active { transform: scale(0.96); background: rgba(255,255,255,0.08); }
+.menu-btn:active { background: #333; }
 
-@keyframes floatCat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+/* --- СПЛЭШ --- */
+.splash { background: #000; z-index: 20000; }
+.splash-logo-img { width: 100px; animation: pulse 2s infinite; }
+
 @keyframes breath { 0%, 100% { opacity: 0.4; transform: scale(1); } 50% { opacity: 0.7; transform: scale(1.1); } }
 @keyframes popUp { from { transform: scale(0.5) translateY(30px); } to { transform: scale(1) translateY(0); } }
+@keyframes pulse { 0% { transform: scale(1); } 50% { transform: scale(1.05); } 100% { transform: scale(1); } }

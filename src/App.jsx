@@ -42,14 +42,14 @@ function App() {
     const hasVisited = localStorage.getItem('hasMetTony');
     if (!hasVisited) setShowWelcome(true);
 
-    // Генерация красивого снега
-    const flakes = Array.from({ length: 40 }).map((_, i) => ({
+    // Снег (более заметный)
+    const flakes = Array.from({ length: 35 }).map((_, i) => ({
       id: i,
       left: Math.random() * 100 + '%',
-      animDuration: Math.random() * 5 + 8 + 's', // Медленное падение
+      animDuration: Math.random() * 5 + 6 + 's',
       animDelay: Math.random() * 5 + 's',
-      opacity: Math.random() * 0.5 + 0.3,
-      size: Math.random() * 10 + 10 + 'px'
+      opacity: Math.random() * 0.7 + 0.3,
+      size: Math.random() * 6 + 4 + 'px'
     }));
     setSnowflakes(flakes);
 
@@ -106,7 +106,6 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // Flip Logic
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -118,15 +117,16 @@ function App() {
   return (
     <>
       <div className="ambient-bg">
+        {/* СФЕРЫ (ORBS) */}
+        <div className="orb orb-1"></div>
+        <div className="orb orb-2"></div>
+        <div className="orb orb-3"></div>
+        
         {/* СНЕГ */}
         <div className="snow-container">
           {snowflakes.map(f => (
             <div key={f.id} className="snowflake" style={{
-              left: f.left, 
-              animationDuration: f.animDuration, 
-              animationDelay: f.animDelay, 
-              opacity: f.opacity,
-              fontSize: f.size
+              left: f.left, animationDuration: f.animDuration, animationDelay: f.animDelay, opacity: f.opacity, fontSize: f.size
             }}>❄</div>
           ))}
         </div>
@@ -150,7 +150,8 @@ function App() {
         </div>
       )}
 
-      <div className={`island-wrapper ${showWelcome ? 'blur-bg' : ''}`}>
+      {/* Убрал 'blur-bg' из логики, чтобы фон не мылило при настройках, это мешает модалке */}
+      <div className="island-wrapper">
         <div className="island">
           
           <div className="header">
@@ -177,7 +178,7 @@ function App() {
                     <TonConnectButton />
                   </div>
                   
-                  <div style={{display:'flex', gap:'10px', marginBottom:'20px'}}>
+                  <div style={{display:'flex', gap:'10px', marginBottom:'15px'}}>
                     <button className={`tab ${lang==='ru'?'active':''}`} onClick={()=>setLang('ru')}>RU</button>
                     <button className={`tab ${lang==='en'?'active':''}`} onClick={()=>setLang('en')}>EN</button>
                     <button className={`tab ${lang==='ua'?'active':''}`} onClick={()=>setLang('ua')}>UA</button>
@@ -188,14 +189,14 @@ function App() {
                   </button>
 
                   <div style={{display:'flex', gap:'10px'}}>
-                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px', height:'auto'}} 
+                     <input type="number" className="glass-input" style={{fontSize:'16px', padding:'12px', height:'auto', margin:0}} 
                             placeholder={t[lang].donatePlaceholder} value={donateAmount} onChange={e=>setDonateAmount(e.target.value)} />
-                     <button className="menu-btn gold" style={{width:'auto', marginBottom:0, background:'linear-gradient(45deg, #FFD700, #FFA500)'}} onClick={handleDonate}>
+                     <button className="menu-btn" style={{width:'60px', marginBottom:0, background:'#FFD700', color:'#000', justifyContent:'center', fontWeight:'bold'}} onClick={handleDonate}>
                         {isDonating ? '...' : '⭐️'}
                      </button>
                   </div>
 
-                  <button className="btn clean-btn" style={{marginTop:'25px', width:'100%', height:'50px', fontSize:'18px'}} onClick={()=>setShowSettings(false)}>
+                  <button className="btn clean-btn" style={{marginTop:'20px', width:'100%', height:'50px', fontSize:'18px'}} onClick={()=>setShowSettings(false)}>
                     ✕ {t[lang].close}
                   </button>
               </div>
@@ -203,7 +204,7 @@ function App() {
           )}
 
           {mode === 'calc' && (
-            <div style={{width:'100%', animation:'fadeIn 0.3s'}}>
+            <>
               <div className="screen">{display}</div>
               <div className="keypad">
                 <button className="btn clean-btn" onClick={reset}>AC</button>
@@ -230,7 +231,7 @@ function App() {
                 <button className="btn num-btn" onClick={()=>{if(!display.includes('.'))setDisplay(display+'.')}}>.</button>
                 <button className="btn neon-btn" onClick={()=>operator('=')}>=</button>
               </div>
-            </div>
+            </>
           )}
 
           {mode === 'flip' && (
@@ -241,7 +242,7 @@ function App() {
               <div className="label">{t[lang].sell} (TON)</div>
               <input type="number" className="glass-input" placeholder="0" value={sell} onChange={e=>setSell(e.target.value)} />
 
-              <div className="fees" style={{display:'flex', gap:'8px'}}>
+              <div style={{display:'flex', gap:'8px'}}>
                 <button className={`tab ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
                 <button className={`tab ${feeType==='custom'?'active':''}`} onClick={()=>setFeeType('custom')}>{t[lang].custom}</button>
               </div>
