@@ -2,37 +2,37 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// ИКОНКИ
+// ICONS
 const IconHome = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>;
 const IconTools = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>;
-const IconSettings = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
+const IconSettings = () => <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>;
 
 const t = {
   en: { 
-    welcome: "Welcome!", sub: "Estimate profits and check TON price instantly.", 
-    donateTitle: "Support Developer", donatePh: "Amount (TON)", send: "SEND",
+    welcome: "Welcome!", sub: "Your ultimate TON utility tool.", 
+    donateTitle: "Support Developer", donatePh: "Amount", send: "SEND",
     nav_home: "Home", nav_app: "App", nav_set: "Settings",
     calc: "Calculator", flip: "NFT Flip", 
-    buy: "Buy Price", sell: "Sell Price", custom: "Custom %",
+    buy: "Buy", sell: "Sell", custom: "Custom %",
     net: "Net Profit",
-    sets: "Settings", news: "News Channel", lang: "Language" 
+    sets: "Settings", news: "News", lang: "Language" 
   },
   ru: { 
-    welcome: "Привет!", sub: "Считай профит и курс TON моментально.", 
-    donateTitle: "Поддержать автора", donatePh: "Сумма (TON)", send: "ОТПРАВИТЬ",
-    nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настройки",
+    welcome: "Привет!", sub: "Твой главный инструмент для TON.", 
+    donateTitle: "Поддержать", donatePh: "Сумма", send: "ОТПРАВИТЬ",
+    nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настр.",
     calc: "Калькулятор", flip: "NFT Флип", 
     buy: "Покупка", sell: "Продажа", custom: "Свой %",
-    net: "Чистый профит",
+    net: "Профит",
     sets: "Настройки", news: "Новости", lang: "Язык" 
   },
   ua: { 
-    welcome: "Привіт!", sub: "Рахуй профіт та курс TON миттєво.", 
-    donateTitle: "Підтримати автора", donatePh: "Сума (TON)", send: "НАДІСЛАТИ",
-    nav_home: "Головна", nav_app: "Утиліти", nav_set: "Налаштування",
+    welcome: "Привіт!", sub: "Твій головний інструмент для TON.", 
+    donateTitle: "Підтримати", donatePh: "Сума", send: "НАДІСЛАТИ",
+    nav_home: "Головна", nav_app: "Утиліти", nav_set: "Налашт.",
     calc: "Калькулятор", flip: "NFT Фліп", 
     buy: "Купівля", sell: "Продаж", custom: "Свій %",
-    net: "Чистий профіт",
+    net: "Профіт",
     sets: "Налаштування", news: "Новини", lang: "Мова" 
   }
 }
@@ -44,6 +44,7 @@ function App() {
   const [tonPrice, setTonPrice] = useState('...');
   const [snowflakes, setSnowflakes] = useState([]);
 
+  // States
   const [display, setDisplay] = useState('0');
   const [waiting, setWaiting] = useState(false);
   const [op, setOp] = useState(null);
@@ -60,7 +61,7 @@ function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.setHeaderColor('#000510');
+      window.Telegram.WebApp.setHeaderColor('#000c1a');
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') setLang('ru');
@@ -71,7 +72,7 @@ function App() {
       .then(r => r.json()).then(d => setTonPrice(parseFloat(d.price).toFixed(2)))
       .catch(() => setTonPrice('6.50'));
 
-    setSnowflakes(Array.from({ length: 40 }).map((_, i) => ({
+    setSnowflakes(Array.from({ length: 30 }).map((_, i) => ({
       id: i, left: Math.random()*100+'%', delay: Math.random()*5+'s', dur: Math.random()*5+5+'s'
     })));
   }, []);
@@ -95,7 +96,9 @@ function App() {
     finally { setIsDonating(false); }
   }
 
+  // --- CALC LOGIC ---
   const num = (n) => {
+    if(display.length > 9 && !waiting) return; // Лимит ввода
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
   }
@@ -113,6 +116,12 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
+  // --- FLIP LOGIC & HELPERS ---
+  const handleFlipInput = (val, setter) => {
+    if (val.length > 10) return; // Лимит 10 символов
+    setter(val);
+  }
+
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -120,6 +129,7 @@ function App() {
     return (s * (1 - fee/100) - b).toFixed(2);
   }
   const profit = getProfit();
+  
   const getGlowColor = () => {
     if (profit === null) return '';
     if (parseFloat(profit) >= 0) return 'green';
@@ -202,8 +212,8 @@ function App() {
 
                {toolMode === 'flip' && (
                  <div className="flip-grid">
-                   <input className="glass-input" type="number" placeholder={`${t[lang].buy} (TON)`} value={buy} onChange={e=>setBuy(e.target.value)}/>
-                   <input className="glass-input" type="number" placeholder={`${t[lang].sell} (TON)`} value={sell} onChange={e=>setSell(e.target.value)}/>
+                   <input className="glass-input" type="number" placeholder={`${t[lang].buy} (TON)`} value={buy} onChange={e=>handleFlipInput(e.target.value, setBuy)}/>
+                   <input className="glass-input" type="number" placeholder={`${t[lang].sell} (TON)`} value={sell} onChange={e=>handleFlipInput(e.target.value, setSell)}/>
                    
                    <div className="segmented-control">
                       <button className={`segment-btn ${feeType==='std'?'active':''}`} onClick={()=>setFeeType('std')}>Getgems (10%)</button>
@@ -219,9 +229,8 @@ function App() {
                          </div>
                          <div style={{fontSize:'12px', opacity:0.5}}>≈ ${(parseFloat(profit)*parseFloat(tonPrice||0)).toFixed(2)}</div>
                          
-                         {/* УМЕНЬШЕННЫЙ НЕОН ТУТ */}
                          <div className="mascot-display" style={{height:'90px', margin:'15px 0 0 0'}}>
-                           <div className={`mascot-glow ${getGlowColor()}`} style={{width:'60px', height:'60px', filter:'blur(25px)'}}></div>
+                           <div className={`mascot-glow ${getGlowColor()}`} style={{width:'70px', height:'70px', filter:'blur(30px)'}}></div>
                            <img 
                              src={parseFloat(profit) >= 0 ? "/img/chibi-happy.png" : "/img/chibi-sad.png"} 
                              style={{width:'80px', zIndex:1, animation:'popUp 0.5s'}}
@@ -259,6 +268,7 @@ function App() {
          )}
       </div>
 
+      {/* BOTTOM NAV */}
       <div className="bottom-nav">
          <div className={`nav-item ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
             <IconSettings /> <span>{t[lang].nav_set}</span>
