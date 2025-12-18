@@ -2,9 +2,26 @@ import { useState, useEffect } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-const IconHome = () => <svg viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>;
-const IconTools = () => <svg viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>;
-const IconSettings = () => <svg viewBox="0 0 24 24"><path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.68 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.09.63-.09.94s.02.64.07.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>;
+// НОВЫЕ КРУТЫЕ ИКОНКИ (Outline Style)
+const IconHome = () => (
+  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+    <polyline points="9 22 9 12 15 12 15 22"></polyline>
+  </svg>
+);
+const IconTools = () => (
+  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+    <line x1="8" y1="21" x2="16" y2="21"></line>
+    <line x1="12" y1="17" x2="12" y2="21"></line>
+  </svg>
+);
+const IconSettings = () => (
+  <svg viewBox="0 0 24 24" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3"></circle>
+    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+  </svg>
+);
 
 const t = {
   en: { 
@@ -43,12 +60,13 @@ function App() {
   const [tonPrice, setTonPrice] = useState('...');
   const [snowflakes, setSnowflakes] = useState([]);
 
-  // Logic States
+  // Calc States
   const [display, setDisplay] = useState('0');
   const [waiting, setWaiting] = useState(false);
   const [op, setOp] = useState(null);
   const [memory, setMemory] = useState(null);
 
+  // Flip States
   const [buy, setBuy] = useState('');
   const [sell, setSell] = useState('');
   const [feeType, setFeeType] = useState('std');
@@ -60,7 +78,7 @@ function App() {
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
-      window.Telegram.WebApp.setHeaderColor('#000a14');
+      window.Telegram.WebApp.setHeaderColor('#001529'); // Под цвет градиента
       window.Telegram.WebApp.isVerticalSwipesEnabled = false;
       const userLang = window.Telegram.WebApp.initDataUnsafe?.user?.language_code;
       if (userLang === 'ru' || userLang === 'be') setLang('ru');
@@ -95,7 +113,6 @@ function App() {
     finally { setIsDonating(false); }
   }
 
-  // CALC
   const num = (n) => {
     if (waiting) { setDisplay(String(n)); setWaiting(false); }
     else setDisplay(display === '0' ? String(n) : display + String(n));
@@ -114,7 +131,6 @@ function App() {
   const invert = () => setDisplay(String(parseFloat(display)*-1));
   const percent = () => setDisplay(String(parseFloat(display)/100));
 
-  // FLIP
   const getProfit = () => {
     const b = parseFloat(buy); const s = parseFloat(sell);
     if (!b || !s) return null;
@@ -122,6 +138,13 @@ function App() {
     return (s * (1 - fee/100) - b).toFixed(2);
   }
   const profit = getProfit();
+
+  // Логика цвета неона (динамическая)
+  const getGlowColor = () => {
+    if (profit === null) return ''; // Синий по умолчанию
+    if (parseFloat(profit) >= 0) return 'green';
+    return 'red';
+  }
 
   return (
     <div className="app-container">
@@ -134,9 +157,10 @@ function App() {
          </div>
       </div>
 
-      <div className="content-area">
+      {/* Центрируем контент на Home и Settings */}
+      <div className={`content-area ${activeTab!=='tools'?'centered':''}`}>
          
-         {/* --- HOME --- */}
+         {/* HOME */}
          {activeTab === 'home' && (
            <div className="island fade-in">
               <div className="mascot-display">
@@ -159,7 +183,7 @@ function App() {
            </div>
          )}
 
-         {/* --- TOOLS --- */}
+         {/* TOOLS */}
          {activeTab === 'tools' && (
            <>
              <div className="tools-header fade-in">
@@ -217,11 +241,12 @@ function App() {
                          </div>
                          <div style={{fontSize:'12px', opacity:0.5}}>≈ ${(parseFloat(profit)*parseFloat(tonPrice||0)).toFixed(2)}</div>
                          
-                         {/* КОТ */}
-                         <div style={{marginTop:'15px', display:'flex', justifyContent:'center'}}>
+                         {/* УМНЫЙ КОТ С ДИНАМИЧЕСКИМ НЕОНОМ */}
+                         <div className="mascot-display" style={{height:'120px', margin:'10px 0 0 0'}}>
+                           <div className={`mascot-glow ${getGlowColor()}`} style={{width:'100px', height:'100px'}}></div>
                            <img 
                              src={parseFloat(profit) >= 0 ? "/img/chibi-happy.png" : "/img/chibi-sad.png"} 
-                             style={{width:'100px', filter: parseFloat(profit)>=0 ? 'drop-shadow(0 0 15px #32d74b)' : 'drop-shadow(0 0 15px #ff453a)', animation:'popUp 0.5s'}}
+                             style={{width:'100px', zIndex:1, animation:'popUp 0.5s'}}
                            />
                          </div>
                       </div>
@@ -232,7 +257,7 @@ function App() {
            </>
          )}
 
-         {/* --- SETTINGS --- */}
+         {/* SETTINGS */}
          {activeTab === 'settings' && (
            <div className="settings-list fade-in">
              <h2 style={{textAlign:'center', marginBottom:'20px'}}>{t[lang].sets}</h2>
@@ -254,10 +279,8 @@ function App() {
              </div>
            </div>
          )}
-
       </div>
 
-      {/* NAV */}
       <div className="bottom-nav">
          <div className={`nav-item ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
             <IconSettings /> <span>{t[lang].nav_set}</span>

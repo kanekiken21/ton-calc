@@ -1,18 +1,19 @@
 :root {
   --primary: #007AFF;
-  --accent: #5AC8FA;
-  /* Цвет стекла стал чуть прозрачнее и синее */
-  --glass-bg: rgba(20, 30, 60, 0.4); 
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --nav-bg: rgba(15, 20, 30, 0.85);
+  --accent: #29C6FF;
+  /* Светлое стекло для контраста */
+  --glass-bg: rgba(20, 35, 60, 0.55); 
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --nav-bg: rgba(10, 20, 35, 0.85);
   --text-main: #FFFFFF;
-  --text-sub: #8E8E93;
+  --text-sub: #9aa5b1;
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
   margin: 0; padding: 0;
-  background: #000510; /* Темно-синяя подложка */
+  /* ЯВНЫЙ СИНИЙ ФОН, НЕ ЧЕРНЫЙ */
+  background: linear-gradient(to bottom, #001529, #003366);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro Text', sans-serif;
   color: var(--text-main);
   -webkit-tap-highlight-color: transparent;
@@ -22,216 +23,225 @@ body {
 
 #root { width: 100%; height: 100%; position: relative; }
 
-/* --- 1. ЖИВОЙ ФОН (ORBS + GRADIENT) --- */
+/* --- 1. ЖИВОЙ ФОН (ORBS) --- */
 .ambient-wrapper {
   position: fixed; inset: 0; z-index: -1; pointer-events: none;
-  /* Глобальный градиент */
-  background: radial-gradient(circle at 50% 10%, #002b5c 0%, #000a1a 60%, #000000 100%);
+  background: radial-gradient(circle at 50% 30%, #00264d 0%, #000d1a 100%); /* Глубокий синий */
 }
 
 .orb {
   position: absolute; border-radius: 50%;
-  filter: blur(80px); /* Сильный блюр */
-  opacity: 0.6;
-  mix-blend-mode: screen; /* Режим наложения для свечения */
-  animation: floatOrb 10s infinite ease-in-out;
+  filter: blur(60px); opacity: 0.6;
+  mix-blend-mode: screen; /* Свечение */
+  animation: floatOrb 12s infinite ease-in-out;
 }
+/* Делаем орбы ярче */
 .orb-1 { 
   top: -10%; left: -20%; width: 100vw; height: 100vw; 
-  background: radial-gradient(circle, #007AFF 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, #007AFF 0%, transparent 70%);
 }
 .orb-2 { 
   bottom: -20%; right: -20%; width: 90vw; height: 90vw; 
-  background: radial-gradient(circle, #00C6FF 0%, rgba(0,0,0,0) 70%);
+  background: radial-gradient(circle, #00C6FF 0%, transparent 70%);
   animation-delay: -5s; 
 }
 .orb-3 {
-  top: 40%; left: 30%; width: 50vw; height: 50vw;
-  background: radial-gradient(circle, #7000ff 0%, rgba(0,0,0,0) 70%);
-  opacity: 0.3; animation-delay: -2s;
+  top: 40%; left: 30%; width: 60vw; height: 60vw;
+  background: radial-gradient(circle, #5200cc 0%, transparent 70%);
+  opacity: 0.4; animation-delay: -2s;
 }
 
 .snow-container { position: absolute; inset: 0; }
 .snowflake {
-  position: absolute; color: #fff; font-size: 1em; opacity: 0.6;
+  position: absolute; color: #fff; font-size: 1em; opacity: 0.7;
   filter: drop-shadow(0 0 2px white); animation: fall linear infinite;
 }
 
 @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
 @keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(30px, -30px); } }
 
-/* --- 2. ЛЕЙАУТ --- */
+/* --- 2. ЛЕЙАУТ И СКРОЛЛ --- */
 .app-container {
   width: 100%; height: 100%; display: flex; flex-direction: column;
 }
 
 .content-area {
-  flex: 1; padding: 10px 16px 120px 16px; /* Больше места снизу */
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  flex: 1; 
+  /* ВАЖНО: Огромный отступ снизу, чтобы контент не прятался за меню */
+  padding: 10px 16px 140px 16px; 
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start; /* Начинаем сверху */
   overflow-y: auto; overflow-x: hidden;
 }
 .content-area::-webkit-scrollbar { display: none; }
+/* Центрируем контент, если его мало */
+.content-area.centered { justify-content: center; }
 
-/* Анимация появления экранов */
-.fade-in { animation: slideUp 0.4s var(--spring) forwards; opacity: 0; transform: translateY(20px); }
+/* Анимация экранов */
+.fade-in { animation: slideUp 0.5s var(--spring) forwards; opacity: 0; transform: translateY(30px); }
 @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-/* --- 3. КОМПАКТНЫЕ ОСТРОВА --- */
+/* --- 3. ОСТРОВА (ISLANDS) --- */
 .island {
-  width: 100%; max-width: 320px; /* Идеально для iPhone SE */
+  width: 100%; max-width: 340px;
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.1);
   backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
   border-radius: 32px;
-  padding: 20px; /* Компактные отступы */
-  display: flex; flex-direction: column; gap: 14px;
+  padding: 24px;
+  display: flex; flex-direction: column; gap: 16px;
+  margin-top: 20px; /* Отступ сверху */
 }
 
-/* --- 4. МАСКОТ И НЕОН (FIX) --- */
+/* --- 4. ИСПРАВЛЕННЫЙ НЕОН (КРУГЛЫЙ) --- */
 .mascot-display {
   position: relative; display: flex; justify-content: center; align-items: center;
-  margin: 5px 0 15px 0; height: 150px;
+  margin: 10px 0 20px 0; height: 160px;
 }
-/* Исправление квадрата: используем radial-gradient внутри div */
+/* 100% КРУГ, ЧТОБЫ НЕ БЫЛО КВАДРАТОВ */
 .mascot-glow {
-  position: absolute; width: 200px; height: 200px;
-  background: radial-gradient(circle, rgba(0,122,255,0.5) 0%, rgba(0,0,0,0) 65%);
-  z-index: 0; pointer-events: none;
-  animation: pulseGlow 4s infinite ease-in-out;
+  position: absolute; width: 160px; height: 160px;
+  background: #007AFF; 
+  border-radius: 50%; /* Ключевое исправление */
+  filter: blur(60px); opacity: 0.6; z-index: 0;
+  animation: breath 4s infinite ease-in-out;
 }
+/* Красный неон для минуса */
+.mascot-glow.red { background: #ff453a; }
+/* Зеленый неон для плюса */
+.mascot-glow.green { background: #32d74b; }
+
 .mascot-main-img {
-  width: 140px; height: auto; z-index: 1;
-  /* Легкая тень самой картинки, а не свечение */
-  filter: drop-shadow(0 10px 10px rgba(0,0,0,0.3));
+  width: 150px; height: auto; z-index: 1;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
   animation: floatMascot 6s infinite ease-in-out;
 }
+@keyframes breath { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
+@keyframes floatMascot { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-@keyframes pulseGlow { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
-@keyframes floatMascot { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
-
-/* --- 5. ЭЛЕМЕНТЫ ИНТЕРФЕЙСА --- */
-.welcome-title { font-size: 24px; font-weight: 800; margin: 0; text-align: center; }
-.welcome-text { color: var(--text-sub); font-size: 14px; text-align: center; margin-bottom: 15px; }
+/* --- 5. ТИПОГРАФИКА И КАРТОЧКИ --- */
+.welcome-title { font-size: 28px; font-weight: 800; margin: 0; text-align: center; }
+.welcome-text { color: var(--text-sub); font-size: 15px; text-align: center; line-height: 1.5; margin-bottom: 10px; }
 
 .donate-card {
-  background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 20px; padding: 15px;
 }
-.donate-label { font-weight: 700; font-size: 12px; margin-bottom: 8px; text-align: center; color: #FFD700; text-transform: uppercase; }
+.donate-label { font-weight: 700; font-size: 12px; margin-bottom: 8px; text-align: center; color: #FFD700; text-transform: uppercase; letter-spacing: 1px;}
 
-/* ХЕДЕР ИНСТРУМЕНТОВ */
+/* --- 6. ИНСТРУМЕНТЫ --- */
 .tools-header {
-  width: 100%; max-width: 320px; margin-bottom: 15px;
+  width: 100%; max-width: 340px; margin: 10px 0 15px 0;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
 .ton-badge {
   background: rgba(0, 122, 255, 0.2); border: 1px solid rgba(0, 122, 255, 0.4);
-  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; color: #5AC8FA;
-  box-shadow: 0 0 15px rgba(0,122,255,0.3); display: flex; gap: 5px;
+  padding: 8px 16px; border-radius: 20px; font-size: 14px; font-weight: 700; color: #5AC8FA;
+  box-shadow: 0 0 20px rgba(0,122,255,0.2); display: flex; gap: 6px; align-items: center;
 }
 
-/* ВКЛАДКИ */
 .segmented-control {
-  background: rgba(0,0,0,0.4); border-radius: 16px; padding: 4px;
+  background: rgba(0,0,0,0.3); border-radius: 18px; padding: 4px;
   display: flex; width: 100%; border: 1px solid rgba(255,255,255,0.05);
 }
 .segment-btn {
-  flex: 1; padding: 10px; border: none; background: transparent; color: #8e8e93;
-  font-weight: 600; font-size: 13px; border-radius: 12px; cursor: pointer; transition: 0.2s;
+  flex: 1; padding: 12px; border: none; background: transparent; color: #8e8e93;
+  font-weight: 600; font-size: 13px; border-radius: 14px; cursor: pointer; transition: 0.2s;
 }
 .segment-btn.active {
   background: rgba(255,255,255,0.15); color: #fff; 
-  box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
 }
 
 /* КАЛЬКУЛЯТОР */
 .screen {
-  font-size: 48px; font-weight: 300; text-align: right; height: 60px;
+  font-size: 50px; font-weight: 300; text-align: right; height: 60px;
   text-shadow: 0 0 20px rgba(255,255,255,0.2); padding-right: 5px; margin-bottom: 5px;
+  letter-spacing: -1px; display: flex; align-items: flex-end; justify-content: flex-end;
 }
 .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
 
-/* Кнопки с пружиной и стеклом */
 .btn {
-  height: 58px; border-radius: 18px; font-size: 22px; color: #fff;
+  height: 60px; border-radius: 18px; font-size: 24px; color: #fff;
   display: flex; justify-content: center; align-items: center; cursor: pointer;
-  background: rgba(255,255,255,0.05); 
-  border-top: 1px solid rgba(255,255,255,0.15);
-  border-bottom: 1px solid rgba(0,0,0,0.3);
+  background: rgba(255,255,255,0.06); 
+  border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(0,0,0,0.3);
   transition: transform 0.2s var(--spring), background 0.2s;
 }
-.btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.btn:active { transform: scale(0.9); background: rgba(255,255,255,0.15); }
 
-.op-btn { background: rgba(0,122,255,0.15); color: #5AC8FA; border-top: 1px solid rgba(90,200,250,0.3); }
-.clean-btn { color: #FF453A; background: rgba(255,69,58,0.15); border-top: 1px solid rgba(255,69,58,0.3); }
+.op-btn { background: rgba(0,122,255,0.2); color: #5AC8FA; border-top: 1px solid rgba(90,200,250,0.4); }
+.clean-btn { color: #FF453A; background: rgba(255,69,58,0.2); border-top: 1px solid rgba(255,69,58,0.4); }
 .neon-btn { 
   background: linear-gradient(135deg, #007AFF, #0055b3);
-  box-shadow: 0 0 25px rgba(0,122,255,0.5); 
-  border: none; border-top: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 0 25px rgba(0,122,255,0.4); border: none; border-top: 1px solid rgba(255,255,255,0.4);
 }
-.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 24px; }
+.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 26px; }
 
 .glass-input {
-  width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 14px; color: #fff; font-size: 16px; outline: none; text-align: center;
+  width: 100%; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 16px; color: #fff; font-size: 18px; outline: none; text-align: center;
   box-sizing: border-box; transition: 0.3s;
 }
-.glass-input:focus { border-color: var(--primary); background: rgba(0,122,255,0.1); }
+.glass-input:focus { border-color: var(--primary); background: rgba(0,122,255,0.15); }
 .donate-btn {
   background: linear-gradient(135deg, #FFD700, #FFA500); border: none; color: #000;
-  border-radius: 12px; padding: 0 16px; font-weight: 800; cursor: pointer;
+  border-radius: 12px; padding: 0 18px; font-weight: 800; cursor: pointer;
   box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); transition: transform 0.2s var(--spring);
 }
-.donate-btn:active { transform: scale(0.9); }
+.donate-btn:active { transform: scale(0.95); }
 
 /* FLIP RESULT */
-.flip-grid { display: flex; flex-direction: column; gap: 12px; }
+.flip-grid { display: flex; flex-direction: column; gap: 14px; }
 .result-card {
-  text-align: center; background: rgba(255,255,255,0.04); border-radius: 18px; padding: 15px;
-  border: 1px solid rgba(255,255,255,0.08); margin-top: 5px;
+  text-align: center; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
+  border: 1px solid rgba(255,255,255,0.1); margin-top: 10px;
 }
-.res-val { font-size: 30px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 25px rgba(0, 122, 255, 0.4); }
+.res-val { font-size: 34px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 30px rgba(0, 122, 255, 0.4); }
 
 /* SETTINGS */
-.settings-list { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; }
+.settings-list { width: 100%; max-width: 320px; display: flex; flex-direction: column; gap: 12px; margin-top: 20px; }
 .setting-item {
   background: var(--glass-bg); border: 1px solid var(--glass-border);
   border-radius: 20px; padding: 18px; display: flex; justify-content: space-between; align-items: center;
-  color: #fff; font-size: 15px; font-weight: 500; cursor: pointer; transition: 0.2s;
+  color: #fff; font-size: 16px; font-weight: 600; cursor: pointer; transition: 0.2s;
 }
-.setting-item:active { transform: scale(0.96); }
+.setting-item:active { transform: scale(0.96); background: rgba(255,255,255,0.1); }
 
-/* BOTTOM NAV (Симметрия) */
+/* --- НИЖНЕЕ МЕНЮ (НОВЫЕ ИКОНКИ) --- */
 .bottom-nav {
-  position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
-  width: 320px; height: 68px;
+  position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+  width: 320px; height: 70px;
   background: var(--nav-bg);
   backdrop-filter: blur(40px); -webkit-backdrop-filter: blur(40px);
   border: 1px solid rgba(255,255,255,0.15);
   border-radius: 40px;
   display: flex; justify-content: space-between; align-items: center;
-  padding: 0 35px; box-sizing: border-box; z-index: 1000;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  padding: 0 40px; box-sizing: border-box; z-index: 1000;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.6);
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: #5c6a85; font-size: 10px; font-weight: 700;
+  color: #637591; font-size: 10px; font-weight: 700;
   cursor: pointer; transition: 0.3s; width: 50px;
 }
-.nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; fill: currentColor; }
+.nav-item svg { 
+  width: 26px; height: 26px; margin-bottom: 4px; 
+  stroke: currentColor; stroke-width: 2; fill: none; /* OUTLINE STYLE */
+  transition: 0.3s; 
+}
 .nav-item.active { color: #fff; }
-.nav-item.active svg { fill: #00C6FF; filter: drop-shadow(0 0 10px #00C6FF); transform: translateY(-3px); }
+.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 8px #00C6FF); transform: translateY(-2px); }
 
 /* Center Button */
-.center-btn-wrapper { position: relative; top: -28px; }
+.center-btn-wrapper { position: relative; top: -30px; }
 .center-btn {
-  width: 60px; height: 60px;
+  width: 64px; height: 64px;
   background: linear-gradient(135deg, #007AFF, #00C6FF);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
-  border: 5px solid #060e18; /* Цвет подложки (примерно) */
+  box-shadow: 0 10px 25px rgba(0, 122, 255, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+  border: 5px solid #001529; /* Цвет подложки (синий) */
   transition: transform 0.3s var(--spring);
 }
-.center-btn svg { width: 28px; height: 28px; fill: #fff; }
+.center-btn svg { width: 30px; height: 30px; stroke: #fff; stroke-width: 2; fill: none; }
 .center-btn:active { transform: scale(0.9); }
