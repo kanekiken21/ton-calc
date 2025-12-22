@@ -1,21 +1,19 @@
 :root {
   --primary: #007AFF;
   --accent: #29C6FF;
-  /* Дорогое темное стекло */
-  --glass-bg: rgba(20, 30, 55, 0.6); 
-  --glass-border: rgba(255, 255, 255, 0.15);
-  --nav-bg: rgba(10, 15, 30, 0.9);
+  --glass-bg: rgba(20, 30, 50, 0.65);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --nav-bg: rgba(10, 15, 30, 0.95);
   --text-main: #FFFFFF;
   --text-sub: #8E8E93;
-  /* JELLY SPRING: Очень приятная, мягкая отдача */
-  --spring: cubic-bezier(0.4, 1.6, 0.6, 0.9);
+  /* Пружина Apple (Bouncy & Smooth) */
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 body {
   margin: 0; padding: 0;
-  /* Глубокий, насыщенный синий фон */
-  background: radial-gradient(circle at 50% 0%, #002855 0%, #000c1a 70%, #000000 100%);
-  background-attachment: fixed;
+  /* Глубокий космос (Синий, не черный) */
+  background: radial-gradient(circle at 50% 20%, #001a33 0%, #000d1a 60%, #000000 100%);
   font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro Text', sans-serif;
   color: var(--text-main);
   -webkit-tap-highlight-color: transparent;
@@ -25,150 +23,148 @@ body {
 
 #root { width: 100%; height: 100%; position: relative; }
 
-/* --- 1. ФОН (ГЛУБИНА) --- */
-.ambient-wrapper {
-  position: fixed; inset: 0; z-index: -1; pointer-events: none;
-}
+/* --- 1. АТМОСФЕРА (ФОН) --- */
+.ambient-wrapper { position: fixed; inset: 0; z-index: -1; pointer-events: none; }
 .orb {
-  position: absolute; border-radius: 50%;
-  filter: blur(90px); opacity: 0.5; mix-blend-mode: screen;
-  animation: floatOrb 12s infinite ease-in-out;
+  position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.5;
+  mix-blend-mode: screen; animation: floatOrb 14s infinite ease-in-out;
 }
-.orb-1 { top: -20%; left: -30%; width: 100vw; height: 100vw; background: #007AFF; }
-.orb-2 { bottom: -20%; right: -20%; width: 90vw; height: 90vw; background: #00C6FF; opacity: 0.3; }
-
+.orb-1 { top: -20%; left: -20%; width: 100vw; height: 100vw; background: radial-gradient(circle, #007AFF 0%, transparent 70%); }
+.orb-2 { bottom: -20%; right: -20%; width: 90vw; height: 90vw; background: radial-gradient(circle, #00C6FF 0%, transparent 70%); }
 .snow-container { position: absolute; inset: 0; }
 .snowflake {
-  position: absolute; color: #fff; font-size: 1.2em; opacity: 0.6;
-  filter: drop-shadow(0 0 3px white); animation: fall linear infinite;
+  position: absolute; color: #fff; font-size: 1em; opacity: 0.6;
+  filter: drop-shadow(0 0 2px white); animation: fall linear infinite;
 }
 @keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
-@keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, -30px); } }
+@keyframes floatOrb { 0%, 100% { transform: translate(0, 0); } 50% { transform: translate(20px, -20px); } }
 
 /* --- 2. ЛЕЙАУТ --- */
 .app-container { width: 100%; height: 100%; display: flex; flex-direction: column; }
-
 .content-area {
-  flex: 1; 
-  width: 100%;
-  /* Отступ снизу 130px, чтобы флип не залезал за меню */
-  padding: 10px 0 130px 0; 
+  flex: 1; width: 100%; padding: 10px 0 110px 0;
   display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
   overflow-y: auto; overflow-x: hidden;
 }
-.content-area.centered { justify-content: center; } 
 .content-area::-webkit-scrollbar { display: none; }
+.content-area.centered { justify-content: center; } /* Для Home */
 
 .fade-in { animation: slideUp 0.5s var(--spring) forwards; opacity: 0; transform: translateY(30px); }
 @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
-/* --- 3. ОСТРОВА (СВЕЧЕНИЕ ПО КОНТУРУ) --- */
+/* --- 3. ОСТРОВА (ISLANDS) --- */
 .island {
-  width: 320px; /* Фикс ширина */
-  background: var(--glass-bg);
-  /* Тонкая светящаяся обводка */
-  border: 1px solid rgba(100, 200, 255, 0.2);
-  /* Мягкое голубое свечение вокруг острова */
-  box-shadow: 0 0 30px rgba(0, 122, 255, 0.15), inset 0 0 20px rgba(255,255,255,0.05);
-  backdrop-filter: blur(45px); -webkit-backdrop-filter: blur(45px);
-  border-radius: 36px;
-  padding: 24px;
-  display: flex; flex-direction: column; gap: 16px;
-  margin: 0 auto;
-  position: relative; overflow: hidden; /* Чтобы ничего не вылезало */
+  width: 320px; background: var(--glass-bg);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1);
+  backdrop-filter: blur(40px); border-radius: 36px; padding: 24px;
+  display: flex; flex-direction: column; gap: 16px; margin: 0 auto;
+  position: relative; overflow: hidden;
 }
 
-/* --- 4. МАСКОТ И НЕОН (КРУГЛЫЙ!) --- */
+/* --- 4. МАСКОТ И КРУГЛЫЙ НЕОН --- */
 .mascot-display {
   position: relative; display: flex; justify-content: center; align-items: center;
   margin: 10px 0 20px 0; height: 130px;
 }
-/* Свечение - отдельный круглый див */
 .mascot-glow {
-  position: absolute; 
-  width: 120px; height: 120px; 
+  position: absolute; width: 120px; height: 120px;
   border-radius: 50%; /* СТРОГО КРУГ */
-  background: #007AFF;
-  filter: blur(60px); /* Мягкий блюр */
-  opacity: 0.8; z-index: 0;
+  background: #007AFF; filter: blur(60px); opacity: 0.7; z-index: 0;
   animation: breath 4s infinite ease-in-out;
 }
 .mascot-glow.green { background: #32d74b; }
 .mascot-glow.red { background: #ff453a; }
-
 .mascot-main-img {
   width: 140px; height: auto; z-index: 1;
-  /* Тень только у пнг */
-  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.4));
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3));
   animation: floatMascot 6s infinite ease-in-out;
 }
-@keyframes breath { 0%,100% { opacity: 0.6; transform: scale(1); } 50% { opacity: 0.9; transform: scale(1.1); } }
+@keyframes breath { 0%,100% { opacity: 0.5; transform: scale(1); } 50% { opacity: 0.8; transform: scale(1.1); } }
 @keyframes floatMascot { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
 
-/* --- 5. ТИПОГРАФИКА --- */
-.welcome-title { font-size: 26px; font-weight: 800; margin: 0; text-align: center; color: #fff; letter-spacing: -0.5px; }
-.welcome-text { color: var(--text-sub); font-size: 14px; text-align: center; margin-bottom: 15px; line-height: 1.4; }
+/* --- 5. НОВЫЕ БАННЕРЫ (WIDGETS) --- */
+.banners-title { font-size: 14px; font-weight: 600; color: #8E8E93; margin-top: 10px; margin-bottom: 5px; margin-left: 5px; }
+.banners-grid { display: flex; gap: 12px; width: 100%; }
+.banner-widget {
+  flex: 1; position: relative; aspect-ratio: 1 / 1; /* Квадрат */
+  border-radius: 24px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  cursor: pointer; transition: transform 0.3s var(--spring);
+}
+.banner-widget:active { transform: scale(0.92); }
+.banner-video { width: 100%; height: 100%; object-fit: cover; }
+.banner-overlay {
+  position: absolute; bottom: 0; left: 0; width: 100%;
+  background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  padding: 12px; box-sizing: border-box;
+}
+.banner-label { font-size: 10px; color: #aaa; text-transform: uppercase; letter-spacing: 1px; font-weight: 700; }
+.banner-name { font-size: 15px; font-weight: 800; color: #fff; margin-top: 2px; }
 
-/* --- 6. ИНСТРУМЕНТЫ --- */
-.tools-header {
-  width: 320px; margin: 10px auto 15px auto;
-  display: flex; flex-direction: column; align-items: center; gap: 12px;
+/* --- 6. TONUSIC PLAYER (LOFI) --- */
+.lofi-container {
+  position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+  z-index: 5000; background: #000;
+  display: flex; flex-direction: column; justify-content: flex-end;
 }
-.ton-badge {
-  background: rgba(0, 122, 255, 0.2); border: 1px solid rgba(0, 198, 255, 0.3);
-  padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700; color: #5AC8FA;
-  box-shadow: 0 0 15px rgba(0,122,255,0.3); display: flex; gap: 6px; align-items: center;
+.lofi-video-bg {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: 0.7;
+}
+.lofi-overlay-gradient {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.1), #000 90%);
+}
+.player-ui {
+  position: relative; z-index: 10; padding: 40px 30px 100px 30px;
+  text-align: center;
+}
+.track-title { font-size: 28px; font-weight: 800; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.4); }
+.track-artist { font-size: 16px; color: #aaa; margin-bottom: 40px; }
+.player-controls {
+  display: flex; align-items: center; justify-content: center; gap: 40px;
+}
+.ctrl-btn {
+  background: transparent; border: none; color: #fff; cursor: pointer; display: flex;
+  transition: transform 0.2s var(--spring);
+}
+.ctrl-btn:active { transform: scale(0.8); }
+.play-btn {
+  width: 70px; height: 70px; background: #fff; color: #000; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  box-shadow: 0 0 40px rgba(255,255,255,0.2);
+}
+.close-lofi {
+  position: absolute; top: 20px; right: 20px; z-index: 20;
+  width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1); color: #fff;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
 }
 
-/* КРАСИВОЕ МЕНЮ (PILL SHAPE) */
-.segmented-control {
-  background: rgba(0,0,0,0.3); border-radius: 20px; padding: 4px;
-  display: flex; width: 100%; border: 1px solid rgba(255,255,255,0.08);
-}
-.segment-btn {
-  flex: 1; padding: 10px; border: none; background: transparent; color: #8e8e93;
-  font-weight: 600; font-size: 13px; border-radius: 16px; cursor: pointer; 
-  transition: 0.3s var(--spring);
-}
-.segment-btn.active {
-  background: rgba(255,255,255,0.15); color: #fff; 
-  box-shadow: 0 4px 12px rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.05);
-}
-.segment-btn:active { transform: scale(0.9); }
-
-/* --- КАЛЬКУЛЯТОР (LIQUID GLASS) --- */
+/* --- 7. КАЛЬКУЛЯТОР И FLIP --- */
 .screen {
-  font-size: 46px; font-weight: 300; text-align: right; 
-  height: 55px; /* Компактно */
+  font-size: 44px; font-weight: 300; text-align: right; height: 50px;
   text-shadow: 0 0 25px rgba(255,255,255,0.2); padding-right: 5px; margin-bottom: 10px;
-  display: flex; align-items: flex-end; justify-content: flex-end;
-  overflow: hidden; /* Обрезаем длинные числа */
+  display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden;
 }
 .keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-
 .btn {
   height: 52px; border-radius: 16px; font-size: 22px; color: #fff;
   display: flex; justify-content: center; align-items: center; cursor: pointer;
-  
-  /* ЭФФЕКТ ЖИДКОГО СТЕКЛА */
-  background: rgba(255, 255, 255, 0.04); 
-  border-top: 1px solid rgba(255, 255, 255, 0.2); /* Блик */
-  border-bottom: 1px solid rgba(0,0,0,0.3); /* Тень */
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-  transition: transform 0.3s var(--spring); /* ПРУЖИНА */
+  background: rgba(255,255,255,0.04); 
+  border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(0,0,0,0.3);
+  transition: transform 0.2s var(--spring);
 }
-.btn:active { transform: scale(0.85); background: rgba(255,255,255,0.1); }
-
-.op-btn { background: rgba(0,122,255,0.15); color: #5AC8FA; border-color: rgba(0,122,255,0.3); }
-.clean-btn { color: #FF453A; background: rgba(255,69,58,0.15); border-color: rgba(255,69,58,0.3); }
+.btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.op-btn { background: rgba(0,122,255,0.15); color: #5AC8FA; }
+.clean-btn { color: #FF453A; background: rgba(255,69,58,0.15); }
 .neon-btn { 
   background: linear-gradient(135deg, #007AFF, #0055b3);
-  box-shadow: 0 0 25px rgba(0,122,255,0.5); 
-  border: none; border-top: 1px solid rgba(255,255,255,0.4);
+  box-shadow: 0 0 25px rgba(0,122,255,0.4); border: none;
 }
-.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 22px; }
-
-/* INPUTS */
 .glass-input {
   width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px; padding: 14px; color: #fff; font-size: 16px; outline: none; text-align: center;
@@ -176,53 +172,14 @@ body {
 }
 .glass-input:focus { border-color: var(--primary); background: rgba(0,122,255,0.1); }
 
-.donate-card {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
-  border-radius: 20px; padding: 16px;
-}
-.donate-btn {
-  background: linear-gradient(135deg, #FFD700, #FFA500); border: none; color: #000;
-  border-radius: 12px; padding: 0 18px; font-weight: 800; cursor: pointer;
-  box-shadow: 0 5px 15px rgba(255, 215, 0, 0.2); 
-  transition: transform 0.3s var(--spring);
-}
-.donate-btn:active { transform: scale(0.9); }
-
-/* FLIP RESULT (ЗАЩИТА ОТ ПЕРЕПОЛНЕНИЯ) */
-.flip-grid { display: flex; flex-direction: column; gap: 14px; }
-.result-card {
-  text-align: center; background: rgba(255,255,255,0.04); border-radius: 20px; padding: 15px;
-  border: 1px solid rgba(255,255,255,0.08); margin-top: 5px;
-  /* Чтобы длинный текст не ломал */
-  word-break: break-word; 
-}
-.res-val { 
-  font-size: 28px; font-weight: 800; margin: 8px 0; 
-  text-shadow: 0 0 25px rgba(0, 122, 255, 0.4);
-  line-height: 1.2;
-}
-
-/* SETTINGS */
-.settings-list { width: 320px; display: flex; flex-direction: column; gap: 12px; margin: 20px auto; }
-.setting-item {
-  background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 20px; padding: 18px; display: flex; justify-content: space-between; align-items: center;
-  color: #fff; font-size: 15px; font-weight: 600; cursor: pointer;
-  transition: transform 0.2s var(--spring);
-}
-.setting-item:active { transform: scale(0.95); background: rgba(255,255,255,0.15); }
-
-/* --- НИЖНЕЕ МЕНЮ (ИДЕАЛ) --- */
+/* --- 8. НАВИГАЦИЯ --- */
 .bottom-nav {
   position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-  width: 320px; height: 70px;
-  background: var(--nav-bg);
-  backdrop-filter: blur(40px);
-  border: 1px solid rgba(255,255,255,0.15);
-  border-radius: 40px;
-  display: flex; justify-content: space-between; align-items: center;
+  width: 320px; height: 70px; background: var(--nav-bg);
+  backdrop-filter: blur(40px); border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 40px; display: flex; justify-content: space-between; align-items: center;
   padding: 0 40px; box-sizing: border-box; z-index: 1000;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+  box-shadow: 0 15px 40px rgba(0,0,0,0.7);
 }
 .nav-item {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -232,16 +189,14 @@ body {
 .nav-item:active { transform: scale(0.85); }
 .nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; stroke: currentColor; stroke-width: 2; fill: none; transition: 0.3s; }
 .nav-item.active { color: #fff; }
-.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 10px #00C6FF); transform: translateY(-3px); }
-
+.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 8px #00C6FF); transform: translateY(-2px); }
 .center-btn-wrapper { position: relative; top: -30px; }
 .center-btn {
-  width: 60px; height: 60px;
-  background: linear-gradient(135deg, #007AFF, #00C6FF);
+  width: 60px; height: 60px; background: linear-gradient(135deg, #007AFF, #00C6FF);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
-  border: 6px solid #000c1a; /* Под цвет фона меню/боди */
+  box-shadow: 0 8px 30px rgba(0, 122, 255, 0.5), inset 0 2px 0 rgba(255,255,255,0.4);
+  border: 5px solid #001a33; /* Цвет фона */
   transition: transform 0.3s var(--spring);
 }
 .center-btn svg { width: 28px; height: 28px; stroke: #fff; stroke-width: 2; fill: none; }
-.center-btn:active { transform: scale(0.8); }
+.center-btn:active { transform: scale(0.85); }
