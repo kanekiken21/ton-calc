@@ -2,10 +2,12 @@ import React from 'react'
 import ReactDOM from 'react-dom/client'
 import App from './App.jsx'
 import './index.css'
-import { TonConnectUIProvider } from '@tonconnect/ui-react';
+// Импортируем провайдер
+import { TonConnectUIProvider } from '@tonconnect/ui-react'
 
-// Ссылка на манифест, который мы создали
-const manifestUrl = 'https://ton-calc.vercel.app/tonconnect-manifest.json'; 
+// URL твоего манифеста (обычно это tonconnect-manifest.json в папке public)
+// Если его нет, используй пока временную ссылку или создай файл.
+const manifestUrl = 'https://raw.githubusercontent.com/ton-community/tutorials/main/03-client/test/public/tonconnect-manifest.json';
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
