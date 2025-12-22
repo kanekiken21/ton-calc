@@ -1,162 +1,244 @@
 :root {
   --primary: #007AFF;
-  --glass-body: rgba(16, 28, 48, 0.85); /* Плотнее, чтобы не сливалось */
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --text-main: #FFFFFF;
-  --text-muted: #8e9bb3;
-  --spring: cubic-bezier(0.34, 1.56, 0.64, 1); 
+  --accent: #29C6FF;
+  /* Цвет корпуса приложения - насыщенное стекло */
+  --app-bg: rgba(20, 30, 50, 0.75); 
+  --glass-border: rgba(255, 255, 255, 0.15);
+  --nav-bg: rgba(12, 18, 30, 0.9);
+  --text-white: #ffffff;
+  --text-grey: #8e9bb3;
+  /* JELLY SPRING (Та самая пружина) */
+  --spring: cubic-bezier(0.25, 1.6, 0.5, 1);
 }
 
-html, body, #root {
-  width: 100%; height: 100%; margin: 0; padding: 0;
-  overflow: hidden; /* Блокируем скролл страницы, скроллим только внутри острова */
-}
+/* --- ГЛОБАЛЬНЫЙ СБРОС --- */
+* { box-sizing: border-box; user-select: none; -webkit-tap-highlight-color: transparent; }
 
 body {
-  background: radial-gradient(circle at 50% 10%, #001a33 0%, #000000 100%);
-  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', sans-serif;
-  color: var(--text-main);
+  margin: 0; padding: 0;
+  width: 100vw; height: 100vh;
+  /* Темный фон страницы (за пределами приложения) */
+  background: #000; 
+  font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Rounded', 'SF Pro Text', sans-serif;
+  color: var(--text-white);
+  overflow: hidden;
   display: flex; justify-content: center; align-items: center;
 }
 
-/* --- ФОН --- */
-.ambient-wrapper { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+#root {
+  width: 100%; height: 100%;
+  display: flex; justify-content: center; align-items: center;
+}
+
+/* --- ФОН (Космос) --- */
+.ambient-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(circle at 50% 50%, #001a33 0%, #000000 100%);
+}
 .orb {
-  position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4;
-  animation: float 10s infinite ease-in-out;
+  position: absolute; border-radius: 50%; filter: blur(90px); opacity: 0.6;
+  mix-blend-mode: screen; animation: floatOrb 15s infinite ease-in-out;
 }
-.orb-1 { top: -20%; left: -20%; width: 100vw; height: 100vw; background: #0056b3; }
-.orb-2 { bottom: -20%; right: -20%; width: 80vw; height: 80vw; background: #00C6FF; }
-@keyframes float { 0%,100%{transform:translate(0,0)} 50%{transform:translate(20px,-20px)} }
+.orb-1 { top: -20%; left: -20%; width: 80vw; height: 80vw; background: #007AFF; }
+.orb-2 { bottom: -20%; right: -20%; width: 70vw; height: 70vw; background: #00C6FF; opacity: 0.4; }
+.snow-container { position: absolute; inset: 0; opacity: 0.5; }
+.snowflake {
+  position: absolute; color: #fff; font-size: 14px;
+  animation: fall linear infinite; text-shadow: 0 0 5px white;
+}
+@keyframes fall { 0% { transform: translateY(-10vh); } 100% { transform: translateY(110vh); } }
+@keyframes floatOrb { 0%,100% { transform: translate(0,0); } 50% { transform: translate(30px,-30px); } }
 
-/* --- SUPER ISLAND (ГЛАВНЫЙ КОРПУС) --- */
-.super-island {
+/* --- МОБИЛЬНЫЙ ФРЕЙМ (ГЛАВНЫЙ КОНТЕЙНЕР) --- */
+.mobile-frame {
   position: relative; z-index: 10;
-  width: 100%; max-width: 360px; height: 95%; max-height: 800px;
-  background: var(--glass-body);
+  width: 100%; max-width: 390px; /* Ширина iPhone */
+  height: 100%; max-height: 850px; /* Чтобы на мониторе не было бесконечным */
+  
+  /* СТЕКЛО */
+  background: var(--app-bg);
+  backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px);
   border: 1px solid var(--glass-border);
-  box-shadow: 0 40px 100px rgba(0,0,0,0.8);
-  border-radius: 40px;
+  border-radius: 40px; /* Скругление как у телефона */
+  
+  /* ТЕНЬ ВОКРУГ ТЕЛЕФОНА */
+  box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 50px 100px rgba(0,0,0,0.8);
+  
   display: flex; flex-direction: column;
-  overflow: hidden;
+  overflow: hidden; /* Обрезаем всё внутри */
 }
 
-/* Контентная часть */
-.app-content {
+/* --- СКРОЛЛ ЗОНА --- */
+.scroll-content {
   flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 20px; display: flex; flex-direction: column; align-items: center;
-}
-.app-content::-webkit-scrollbar { display: none; }
-
-/* Анимация страниц */
-.fade-in { animation: fade 0.4s var(--spring); width: 100%; display: flex; flex-direction: column; align-items: center; }
-@keyframes fade { from{opacity:0;transform:translateY(20px)} to{opacity:1;transform:translateY(0)} }
-
-/* --- НАВИГАЦИЯ (ВНУТРИ) --- */
-.internal-nav {
-  height: 80px; min-height: 80px;
-  background: rgba(10, 15, 25, 0.9);
-  border-top: 1px solid var(--glass-border);
-  display: flex; justify-content: space-around; align-items: center;
-  padding-bottom: 10px; z-index: 20;
-}
-.nav-item {
+  padding: 20px; padding-bottom: 120px; /* Место под меню */
   display: flex; flex-direction: column; align-items: center;
-  color: #5c6a85; font-size: 10px; font-weight: 700; cursor: pointer; transition: 0.2s; width: 60px;
 }
-.nav-item svg { width: 24px; height: 24px; margin-bottom: 4px; stroke: currentColor; stroke-width: 2; fill: none; }
-.nav-item.active { color: #fff; }
-.nav-item.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 8px #00C6FF); }
+.scroll-content::-webkit-scrollbar { display: none; }
+.scroll-content.centered { justify-content: center; } /* Центрируем Home по вертикали */
 
-.center-nav-btn {
-  width: 56px; height: 56px; margin-top: -30px;
-  background: linear-gradient(135deg, #007AFF, #00C6FF);
+/* АНИМАЦИЯ ПОЯВЛЕНИЯ */
+.fade-in { 
+  width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px;
+  animation: slideUp 0.5s var(--spring) forwards; opacity: 0; transform: translateY(30px);
+}
+@keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
+
+/* --- ЭЛЕМЕНТЫ UI --- */
+
+/* МАСКОТ И НЕОН (ИСПРАВЛЕНО) */
+.mascot-wrap {
+  position: relative; height: 160px; display: flex; justify-content: center; align-items: center;
+  margin-bottom: 10px;
+}
+.neon-circle {
+  position: absolute; width: 120px; height: 120px;
+  background: #007AFF; border-radius: 50%; /* КРУГ */
+  filter: blur(60px); opacity: 0.8; z-index: 0;
+  animation: pulse 3s infinite ease-in-out;
+}
+.neon-circle.green { background: #32d74b; }
+.neon-circle.red { background: #ff453a; }
+.mascot-img {
+  width: 150px; height: auto; z-index: 1; position: relative;
+  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
+  animation: float 5s infinite ease-in-out;
+}
+@keyframes pulse { 0%,100%{transform:scale(1);opacity:0.6;} 50%{transform:scale(1.1);opacity:0.9;} }
+@keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
+
+/* ТЕКСТЫ */
+.h1-title { font-size: 28px; font-weight: 800; margin: 0; color: #fff; text-align: center; }
+.sub-text { font-size: 15px; color: var(--text-grey); text-align: center; margin-bottom: 20px; line-height: 1.4; }
+
+/* БАННЕРЫ */
+.banners-row { display: flex; width: 100%; gap: 12px; }
+.banner-card {
+  flex: 1; aspect-ratio: 16/9; position: relative;
+  border-radius: 20px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,0.1);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+  cursor: pointer; transition: transform 0.3s var(--spring);
+}
+.banner-card:active { transform: scale(0.95); }
+.banner-vid { width: 100%; height: 100%; object-fit: cover; }
+.banner-info {
+  position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
+  display: flex; flex-direction: column; justify-content: flex-end; padding: 12px;
+}
+.b-tag { font-size: 10px; font-weight: 800; color: #aaa; text-transform: uppercase; letter-spacing: 1px; }
+.b-title { font-size: 14px; font-weight: 800; color: #fff; }
+
+/* КНОПКА LOFI */
+.lofi-btn-big {
+  width: 100%; height: 65px; margin-top: 15px;
+  background: linear-gradient(135deg, #7F00FF, #E100FF);
+  border-radius: 22px; border: none; color: #fff;
+  font-size: 18px; font-weight: 800; letter-spacing: 0.5px;
+  display: flex; align-items: center; justify-content: center; gap: 10px;
+  box-shadow: 0 10px 30px rgba(127, 0, 255, 0.4);
+  cursor: pointer; transition: transform 0.3s var(--spring);
+}
+.lofi-btn-big:active { transform: scale(0.95); }
+
+/* --- TOOLS HEADER --- */
+.tools-head { width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; margin-bottom: 20px; }
+.ton-price-pill {
+  background: rgba(0, 122, 255, 0.2); border: 1px solid rgba(0, 122, 255, 0.3);
+  padding: 6px 16px; border-radius: 20px; color: #5AC8FA; font-weight: 700; font-size: 14px;
+  box-shadow: 0 0 15px rgba(0,122,255,0.2);
+}
+.switcher {
+  background: rgba(0,0,0,0.3); border-radius: 16px; padding: 4px; display: flex; width: 100%;
+}
+.switch-item {
+  flex: 1; padding: 10px; border: none; background: transparent; color: #8e9bb3;
+  font-weight: 600; font-size: 14px; border-radius: 12px; cursor: pointer; transition: 0.2s;
+}
+.switch-item.active { background: rgba(255,255,255,0.15); color: #fff; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+
+/* --- КАЛЬКУЛЯТОР (СТЕКЛО) --- */
+.calc-screen {
+  width: 100%; text-align: right; font-size: 48px; font-weight: 300; height: 60px;
+  text-shadow: 0 0 20px rgba(255,255,255,0.2); padding-right: 5px; margin-bottom: 10px;
+  display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden;
+}
+.keypad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
+.k-btn {
+  height: 56px; border-radius: 16px; font-size: 24px; color: #fff;
+  display: flex; justify-content: center; align-items: center; cursor: pointer;
+  background: rgba(255,255,255,0.05); 
+  border-top: 1px solid rgba(255,255,255,0.2); border-bottom: 1px solid rgba(0,0,0,0.2);
+  transition: transform 0.3s var(--spring);
+}
+.k-btn:active { transform: scale(0.85); background: rgba(255,255,255,0.15); }
+.op { background: rgba(0,122,255,0.15); color: #5AC8FA; }
+.ac { color: #FF453A; background: rgba(255,69,58,0.15); }
+.eq { background: linear-gradient(135deg, #007AFF, #0055b3); border:none; box-shadow: 0 0 20px rgba(0,122,255,0.4); }
+.zero { grid-column: span 2; justify-content: flex-start; padding-left: 25px; }
+
+/* FLIP INPUTS */
+.inp-row { width: 100%; margin-bottom: 10px; }
+.glass-inp {
+  width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 16px; padding: 16px; color: #fff; font-size: 18px; text-align: center; outline: none;
+}
+.glass-inp:focus { border-color: var(--primary); background: rgba(0,122,255,0.1); }
+.res-box {
+  width: 100%; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
+  text-align: center; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px;
+}
+.res-val { font-size: 32px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 20px rgba(0,122,255,0.5); }
+
+/* --- НАВИГАЦИЯ (НИЖНЯЯ) --- */
+.nav-bar {
+  position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
+  width: 340px; height: 75px;
+  background: var(--nav-bg);
+  backdrop-filter: blur(40px);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 40px;
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 0 45px; z-index: 100;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.7);
+}
+.nav-btn {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  color: #5c6a85; font-size: 10px; font-weight: 700; cursor: pointer; width: 50px;
+  transition: 0.3s var(--spring);
+}
+.nav-btn:active { transform: scale(0.85); }
+.nav-btn svg { width: 26px; height: 26px; margin-bottom: 4px; stroke: currentColor; stroke-width: 2; fill: none; }
+.nav-btn.active { color: #fff; }
+.nav-btn.active svg { stroke: #00C6FF; filter: drop-shadow(0 0 10px #00C6FF); transform: translateY(-3px); }
+
+.nav-center { position: relative; top: -30px; }
+.home-btn {
+  width: 64px; height: 64px; background: linear-gradient(135deg, #007AFF, #00C6FF);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
   box-shadow: 0 10px 30px rgba(0, 122, 255, 0.5);
-  border: 5px solid #0b1426; /* Маскировка под фон */
+  border: 6px solid #000c1a; /* Цвет фона под кнопкой */
+  transition: 0.3s var(--spring);
 }
-.center-nav-btn svg { width: 28px; stroke: #fff; }
+.home-btn:active { transform: scale(0.85); }
+.home-btn svg { width: 30px; height: 30px; stroke: #fff; stroke-width: 2; fill: none; }
 
-/* --- БАННЕРЫ (ПРЯМОУГОЛЬНЫЕ) --- */
-.banners-grid { display: flex; gap: 10px; width: 100%; margin-top: 15px; }
-.banner-widget {
-  flex: 1; height: 100px; position: relative;
-  border-radius: 20px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 5px 15px rgba(0,0,0,0.3); cursor: pointer;
+/* LOFI OVERLAY */
+.lofi-full {
+  position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 200; background: #000;
 }
-.banner-video { width: 100%; height: 100%; object-fit: cover; }
-.banner-overlay {
-  position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent);
-  display: flex; flex-direction: column; justify-content: flex-end; padding: 10px;
+.lofi-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
+.lofi-ui {
+  position: absolute; bottom: 0; width: 100%; padding: 40px; background: linear-gradient(to top, #000, transparent);
+  display: flex; flex-direction: column; align-items: center;
 }
-.banner-title { font-size: 10px; color: #aaa; font-weight: 700; text-transform: uppercase; }
-.banner-sub { font-size: 13px; color: #fff; font-weight: 800; }
-
-/* --- МАСКОТ --- */
-.mascot-display {
-  position: relative; height: 140px; display: flex; justify-content: center; align-items: center;
-  margin-top: 10px;
+.play-circle {
+  width: 70px; height: 70px; background: #fff; border-radius: 50%; color: #000;
+  display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer;
+  margin-top: 20px; box-shadow: 0 0 30px rgba(255,255,255,0.3);
 }
-.mascot-glow {
-  position: absolute; width: 100px; height: 100px; border-radius: 50%;
-  background: #007AFF; filter: blur(50px); opacity: 0.6; animation: pulse 4s infinite;
-}
-.mascot-img { width: 130px; position: relative; z-index: 2; filter: drop-shadow(0 10px 20px rgba(0,0,0,0.3)); }
-@keyframes pulse { 0%,100%{opacity:0.6;transform:scale(1)} 50%{opacity:0.9;transform:scale(1.1)} }
-
-/* --- КАЛЬКУЛЯТОР --- */
-.screen {
-  width: 100%; text-align: right; font-size: 40px; font-weight: 300; height: 50px;
-  text-shadow: 0 0 20px rgba(255,255,255,0.2); overflow: hidden; padding-right: 5px;
-}
-.keypad { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; width: 100%; margin-top: 10px; }
-.btn {
-  height: 48px; border-radius: 12px; font-size: 20px; color: #fff;
-  display: flex; justify-content: center; align-items: center; cursor: pointer;
-  background: rgba(255,255,255,0.05); border-top: 1px solid rgba(255,255,255,0.15);
-  transition: 0.1s;
-}
-.btn:active { background: rgba(255,255,255,0.1); transform: scale(0.95); }
-.neon-btn { background: linear-gradient(135deg, #007AFF, #0055b3); box-shadow: 0 0 20px rgba(0,122,255,0.4); border:none; }
-.zero-btn { grid-column: span 2; justify-content: flex-start; padding-left: 20px; }
-
-/* INPUTS & FLIP */
-.glass-input {
-  width: 100%; background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 14px; padding: 12px; color: #fff; font-size: 16px; outline: none; text-align: center;
-  box-sizing: border-box; margin-bottom: 10px;
-}
-.flip-cont { width: 100%; display: flex; flex-direction: column; }
-.result-card {
-  width: 100%; background: rgba(255,255,255,0.05); border-radius: 16px; padding: 15px;
-  text-align: center; border: 1px solid rgba(255,255,255,0.1); box-sizing: border-box;
-}
-
-/* SETTINGS */
-.settings-list { width: 100%; display: flex; flex-direction: column; gap: 10px; }
-.setting-item {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1);
-  border-radius: 16px; padding: 15px; display: flex; justify-content: space-between; align-items: center;
-  width: 100%; box-sizing: border-box;
-}
-
-/* LOFI */
-.lofi-view {
-  width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 50;
-  background: #000; display: flex; flex-direction: column;
-}
-.lofi-video { width: 100%; height: 100%; object-fit: cover; opacity: 0.6; }
-.lofi-content {
-  position: absolute; bottom: 0; width: 100%; padding: 20px; padding-bottom: 40px;
-  background: linear-gradient(to top, #000, transparent); display: flex; flex-direction: column; align-items: center;
-}
-.play-btn {
-  width: 60px; height: 60px; background: #fff; border-radius: 50%; color: #000;
-  display: flex; justify-content: center; align-items: center; font-size: 24px; cursor: pointer;
-  margin-top: 20px;
-}
-.close-lofi {
-  position: absolute; top: 20px; right: 20px; z-index: 60; color: #fff;
-  background: rgba(0,0,0,0.5); width: 40px; height: 40px; border-radius: 50%;
-  border: 1px solid rgba(255,255,255,0.2); cursor: pointer;
+.close-btn {
+  position: absolute; top: 20px; right: 20px; width: 40px; height: 40px; border-radius: 50%;
+  background: rgba(255,255,255,0.1); color: #fff; display: flex; justify-content: center; align-items: center;
+  border: 1px solid rgba(255,255,255,0.2); cursor: pointer; z-index: 210;
 }
