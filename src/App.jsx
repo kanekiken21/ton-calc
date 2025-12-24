@@ -2,10 +2,9 @@ import { useState, useEffect, useRef } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// НОВЫЕ ИДЕАЛЬНЫЕ SVG ИКОНКИ
+// ИКОНКИ (Чистые, без фона)
 const IconHome = () => <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>;
 const IconApp = () => <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
-// Иконка настроек (Шестеренка) - Четкая
 const IconSet = () => <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 
 const tracks = [
@@ -53,6 +52,7 @@ function App() {
   const [playing, setPlaying] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
   const [hideUi, setHideUi] = useState(false);
+  const [videoLoaded, setVideoLoaded] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -85,8 +85,8 @@ function App() {
     <>
       <div className={`loading-screen ${!loading ? 'hidden' : ''}`}>
          <img src="/img/logo-v2.png" className="loader-logo" />
-         <div className="loader-title">My TON Calculator</div>
-         <div className="loader-bar-bg"><div className="loader-bar-fill"></div></div>
+         <div className="loader-title">MY TON CALCULATOR</div>
+         <div className="loader-spinner-main"></div>
       </div>
 
       <div className="mobile-frame">
@@ -102,15 +102,16 @@ function App() {
          <div className={`scroll-content ${activeTab==='home'?'centered':''}`}>
             
             {activeTab === 'home' && (
-              <div className="fade-in">
+              <div className="page-anim">
                  <div className="mascot-wrap">
                     <div className="sparkle" style={{top:20, left:40}}></div>
-                    <div className="sparkle" style={{bottom:30, right:50, animationDelay:'1s'}}></div>
                     <div className="neon-circle"></div>
                     <img src="/img/chibi-happy.png" className="mascot-img" />
                  </div>
                  <h1 className="h1-title">{t[lang].welcome}</h1>
+                 <div className="beta-badge">v.1.0 BETA</div> {/* БЕЙДЖ БЕТА */}
                  <p className="sub-text">{t[lang].sub}</p>
+                 
                  <div className="banners-label">{t[lang].explore}</div>
                  <div className="banners-row">
                     <div className="banner-card" onClick={()=>setIsLofi(true)}>
@@ -126,7 +127,7 @@ function App() {
             )}
 
             {activeTab === 'app' && (
-              <div className="fade-in" style={{width:'100%'}}>
+              <div className="page-anim" style={{width:'100%'}}>
                  <div className="tools-head">
                     <div className="ton-pill"><span>💎</span> TON: ${tonPrice}</div>
                     <div className="switcher">
@@ -181,7 +182,7 @@ function App() {
             )}
 
             {activeTab === 'settings' && (
-               <div className="fade-in" style={{width:'100%'}}>
+               <div className="page-anim" style={{width:'100%'}}>
                   <h2 className="h1-title" style={{marginBottom:25}}>{t[lang].sets}</h2>
                   <div style={{display:'flex', justifyContent:'center', marginBottom:25}}>
                      <TonConnectButton />
@@ -198,10 +199,18 @@ function App() {
             )}
          </div>
 
+         {/* LOFI OVERLAY */}
          {isLofi && (
            <div className="lofi-wrapper">
               <div className="close-lofi" onClick={()=>{setIsLofi(false); setHideUi(false); if(playing) audioRef.current.pause(); setPlaying(false)}}>✕</div>
-              <video src="/video/lofi-train.mp4" className="lofi-vid" autoPlay loop muted playsInline />
+              
+              {!videoLoaded && <div className="loader-spinner-main" style={{position:'absolute', zIndex:10}}></div>}
+              
+              <video 
+                src="/video/lofi-train.mp4" className="lofi-vid" 
+                autoPlay loop muted playsInline 
+                onLoadedData={()=>setVideoLoaded(true)}
+              />
               
               {hideUi && <div className="show-ui-btn" onClick={()=>setHideUi(false)}>{t[lang].showUi}</div>}
 
