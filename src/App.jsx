@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// ИКОНКИ (Чистые, без фона)
+// ICONS
 const IconHome = () => <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>;
 const IconApp = () => <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
 const IconSet = () => <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
@@ -14,25 +14,25 @@ const tracks = [
 ];
 
 const t = {
-  en: { 
-    welcome: "Welcome!", sub: "Your ultimate TON tool.", 
-    nav_home: "Home", nav_app: "App", nav_set: "Settings",
-    calc: "Calculator", flip: "Flip NFT", 
-    buy: "Buy Price", sell: "Sell Price", fee: "Fee %",
-    net: "Net Profit",
-    sets: "Settings", news: "News", lang: "Language",
-    relax: "RELAX", theme: "THEME", showUi: "Show Playlist"
-  },
-  ru: { 
-    welcome: "Привет!", sub: "Твой главный инструмент.", 
-    nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настр.",
-    calc: "Калькулятор", flip: "Флип NFT", 
-    buy: "Покупка", sell: "Продажа", fee: "Комиссия %",
-    net: "Профит",
-    sets: "Настройки", news: "Новости", lang: "Язык",
-    relax: "РЕЛАКС", theme: "ТЕМА", showUi: "Показать плейлист"
-  }
+  en: { welcome: "Welcome!", sub: "Your ultimate TON tool.", nav_home: "Home", nav_app: "App", nav_set: "Settings", calc: "Calculator", flip: "Flip NFT", buy: "Buy Price", sell: "Sell Price", fee: "Fee %", net: "Net Profit", sets: "Settings", news: "News", lang: "Language", relax: "RELAX", theme: "THEME", showUi: "Show Playlist" },
+  ru: { welcome: "Привет!", sub: "Твой главный инструмент.", nav_home: "Главная", nav_app: "Утилиты", nav_set: "Настр.", calc: "Калькулятор", flip: "Флип NFT", buy: "Покупка", sell: "Продажа", fee: "Комиссия %", net: "Профит", sets: "Настройки", news: "Новости", lang: "Язык", relax: "РЕЛАКС", theme: "ТЕМА", showUi: "Показать плейлист" }
 }
+
+// VIDEO LOADER COMPONENT
+const VideoWithLoader = ({ src, className, ...props }) => {
+  const [loaded, setLoaded] = useState(false);
+  return (
+    <>
+      {!loaded && <div className="vid-loader"></div>}
+      <video 
+        src={src} 
+        className={`${className} ${loaded ? 'loaded' : ''}`} 
+        onLoadedData={() => setLoaded(true)} 
+        {...props} 
+      />
+    </>
+  );
+};
 
 function App() {
   const [loading, setLoading] = useState(true);
@@ -47,12 +47,10 @@ function App() {
   const [sell, setSell] = useState('');
   const [fee, setFee] = useState('');
   
-  // LOFI
   const [isLofi, setIsLofi] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
   const [hideUi, setHideUi] = useState(false);
-  const [videoLoaded, setVideoLoaded] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
@@ -73,7 +71,11 @@ function App() {
   }, []);
 
   const safeLink = (url) => window.Telegram?.WebApp ? window.Telegram.WebApp.openTelegramLink(url) : window.open(url, '_blank');
+  
+  // LIMIT INPUTS TO PREVENT OVERFLOW
   const num = (n) => { if(display.length<9) setDisplay(display==='0'?String(n):display+n); }
+  const handleInput = (val, setter) => { if(val.length <= 8) setter(val); }
+
   const reset = () => setDisplay('0');
   const solve = () => { try { setDisplay(String(eval(display.replace('x','*'))).slice(0,9)); } catch {} }
   const profit = buy && sell ? (sell * (1 - (parseFloat(fee)||10)/100) - buy).toFixed(2) : null;
@@ -85,8 +87,8 @@ function App() {
     <>
       <div className={`loading-screen ${!loading ? 'hidden' : ''}`}>
          <img src="/img/logo-v2.png" className="loader-logo" />
+         <div className="loader-bar-bg"><div className="loader-bar-fill"></div></div>
          <div className="loader-title">MY TON CALCULATOR</div>
-         <div className="loader-spinner-main"></div>
       </div>
 
       <div className="mobile-frame">
@@ -102,24 +104,23 @@ function App() {
          <div className={`scroll-content ${activeTab==='home'?'centered':''}`}>
             
             {activeTab === 'home' && (
-              <div className="page-anim">
+              <div className="fade-in">
                  <div className="mascot-wrap">
-                    <div className="sparkle" style={{top:20, left:40}}></div>
                     <div className="neon-circle"></div>
                     <img src="/img/chibi-happy.png" className="mascot-img" />
                  </div>
                  <h1 className="h1-title">{t[lang].welcome}</h1>
-                 <div className="beta-badge">v.1.0 BETA</div> {/* БЕЙДЖ БЕТА */}
+                 <div className="beta-badge">BETA</div>
                  <p className="sub-text">{t[lang].sub}</p>
                  
                  <div className="banners-label">{t[lang].explore}</div>
                  <div className="banners-row">
                     <div className="banner-card" onClick={()=>setIsLofi(true)}>
-                       <video src="/video/banner-tonusic.mp4" className="banner-vid" autoPlay loop muted playsInline />
+                       <VideoWithLoader src="/video/banner-tonusic.mp4" className="banner-vid" autoPlay loop muted playsInline />
                        <div className="banner-info"><div className="b-tag">{t[lang].relax}</div><div className="b-title">TONUSIC</div></div>
                     </div>
                     <div className="banner-card" onClick={()=>safeLink('https://t.me/share/url?url=https://t.me/MyTonCalcBot')}>
-                       <video src="/video/banner-matrix.mp4" className="banner-vid" autoPlay loop muted playsInline />
+                       <VideoWithLoader src="/video/banner-matrix.mp4" className="banner-vid" autoPlay loop muted playsInline />
                        <div className="banner-info"><div className="b-tag">{t[lang].theme}</div><div className="b-title">MATRIX</div></div>
                     </div>
                  </div>
@@ -127,7 +128,7 @@ function App() {
             )}
 
             {activeTab === 'app' && (
-              <div className="page-anim" style={{width:'100%'}}>
+              <div className="fade-in" style={{width:'100%'}}>
                  <div className="tools-head">
                     <div className="ton-pill"><span>💎</span> TON: ${tonPrice}</div>
                     <div className="switcher">
@@ -162,9 +163,9 @@ function App() {
                    </>
                  ) : (
                    <div style={{width:'100%'}}>
-                      <input className="glass-inp" type="number" placeholder={t[lang].buy} value={buy} onChange={e=>setBuy(e.target.value)} />
-                      <input className="glass-inp" type="number" placeholder={t[lang].sell} value={sell} onChange={e=>setSell(e.target.value)} />
-                      <input className="glass-inp" type="number" placeholder={t[lang].fee} value={fee} onChange={e=>setFee(e.target.value)} />
+                      <input className="glass-inp" type="number" placeholder={t[lang].buy} value={buy} onChange={e=>handleInput(e.target.value, setBuy)} />
+                      <input className="glass-inp" type="number" placeholder={t[lang].sell} value={sell} onChange={e=>handleInput(e.target.value, setSell)} />
+                      <input className="glass-inp" type="number" placeholder={t[lang].fee} value={fee} onChange={e=>handleInput(e.target.value, setFee)} />
                       {profit && (
                         <div className="res-box">
                            <div style={{fontSize:12, opacity:0.6}}>{t[lang].net}</div>
@@ -182,35 +183,28 @@ function App() {
             )}
 
             {activeTab === 'settings' && (
-               <div className="page-anim" style={{width:'100%'}}>
+               <div className="fade-in" style={{width:'100%'}}>
                   <h2 className="h1-title" style={{marginBottom:25}}>{t[lang].sets}</h2>
                   <div style={{display:'flex', justifyContent:'center', marginBottom:25}}>
                      <TonConnectButton />
                   </div>
                   <div className="settings-list">
                      <div className="setting-item" onClick={()=>setLang(lang==='en'?'ru':'en')}>
-                        <span>🌐 {t[lang].lang}</span> <span style={{opacity:0.5}}>{lang.toUpperCase()}</span>
+                        <span>🌐 {t[lang].lang}</span> <span className="setting-val">{lang.toUpperCase()}</span>
                      </div>
                      <div className="setting-item" onClick={()=>safeLink('https://t.me/mytoncalculator')}>
-                        <span>📢 {t[lang].news}</span> <span>↗</span>
+                        <span>📢 {t[lang].news}</span> <span className="setting-val">OPEN</span>
                      </div>
                   </div>
                </div>
             )}
          </div>
 
-         {/* LOFI OVERLAY */}
          {isLofi && (
            <div className="lofi-wrapper">
               <div className="close-lofi" onClick={()=>{setIsLofi(false); setHideUi(false); if(playing) audioRef.current.pause(); setPlaying(false)}}>✕</div>
               
-              {!videoLoaded && <div className="loader-spinner-main" style={{position:'absolute', zIndex:10}}></div>}
-              
-              <video 
-                src="/video/lofi-train.mp4" className="lofi-vid" 
-                autoPlay loop muted playsInline 
-                onLoadedData={()=>setVideoLoaded(true)}
-              />
+              <VideoWithLoader src="/video/lofi-train.mp4" className="lofi-vid" autoPlay loop muted playsInline />
               
               {hideUi && <div className="show-ui-btn" onClick={()=>setHideUi(false)}>{t[lang].showUi}</div>}
 
@@ -233,15 +227,15 @@ function App() {
 
          {!isLofi && (
            <div className="nav-bar">
-              <div className={`nav-btn ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
+              <button className={`nav-btn ${activeTab==='settings'?'active':''}`} onClick={()=>setActiveTab('settings')}>
                  <IconSet/>
-              </div>
+              </button>
               <div className="nav-center">
-                 <div className="home-btn" onClick={()=>setActiveTab('home')}><IconHome/></div>
+                 <button className="home-btn" onClick={()=>setActiveTab('home')}><IconHome/></button>
               </div>
-              <div className={`nav-btn ${activeTab==='app'?'active':''}`} onClick={()=>setActiveTab('app')}>
+              <button className={`nav-btn ${activeTab==='app'?'active':''}`} onClick={()=>setActiveTab('app')}>
                  <IconApp/>
-              </div>
+              </button>
            </div>
          )}
       </div>
