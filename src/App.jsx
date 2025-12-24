@@ -2,11 +2,11 @@ import { useState, useEffect, useRef } from 'react'
 import { TonConnectButton } from '@tonconnect/ui-react'
 import './App.css'
 
-// ИСПРАВЛЕННЫЕ ИКОНКИ (Теперь ровные)
+// НОВЫЕ ИДЕАЛЬНЫЕ SVG ИКОНКИ
 const IconHome = () => <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>;
-const IconApp = () => <svg viewBox="0 0 24 24"><rect x="2 3 20 14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
-// Иконка настроек (FIXED) - теперь центрирована и не обрезается
-const IconSet = () => <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>;
+const IconApp = () => <svg viewBox="0 0 24 24"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>;
+// Иконка настроек (Шестеренка) - Четкая
+const IconSet = () => <svg viewBox="0 0 24 24"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.09a2 2 0 0 1-1-1.74v-.47a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>;
 
 const tracks = [
   { title: "Vibe 1: Focus", src: "/music/track1.mp3" },
@@ -43,21 +43,20 @@ function App() {
   const [tonPrice, setTonPrice] = useState('...');
   const [snowflakes, setSnowflakes] = useState([]);
   
-  // STATES
   const [display, setDisplay] = useState('0');
   const [buy, setBuy] = useState('');
   const [sell, setSell] = useState('');
   const [fee, setFee] = useState('');
   
-  // LOFI STATES
+  // LOFI
   const [isLofi, setIsLofi] = useState(false);
   const [playing, setPlaying] = useState(false);
   const [trackIdx, setTrackIdx] = useState(0);
-  const [hideUi, setHideUi] = useState(false); // Скрытие интерфейса
+  const [hideUi, setHideUi] = useState(false);
   const audioRef = useRef(null);
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 2500); // Дольше загрузка для красоты
+    setTimeout(() => setLoading(false), 2500);
     if (window.Telegram?.WebApp) {
       window.Telegram.WebApp.ready();
       window.Telegram.WebApp.expand();
@@ -69,7 +68,7 @@ function App() {
       .then(r=>r.json()).then(d=>setTonPrice(parseFloat(d.price).toFixed(2))).catch(()=>{});
     
     setSnowflakes(Array.from({length:40}).map((_,i)=>({
-      id:i, left:Math.random()*100+'%', dur:Math.random()*5+5+'s', delay: -Math.random()*5+'s', size: Math.random()*4+10+'px'
+      id:i, left:Math.random()*100+'%', dur:Math.random()*5+5+'s', delay: -Math.random()*5+'s'
     })));
   }, []);
 
@@ -85,23 +84,28 @@ function App() {
   return (
     <>
       <div className={`loading-screen ${!loading ? 'hidden' : ''}`}>
-         <img src="/img/logo-v2.png" className="loader-logo" /> {/* Используем твое лого кристалла */}
-         <div className="loader-text">TONUSIC APP</div>
+         <img src="/img/logo-v2.png" className="loader-logo" />
+         <div className="loader-title">My TON Calculator</div>
+         <div className="loader-bar-bg"><div className="loader-bar-fill"></div></div>
       </div>
 
       <div className="mobile-frame">
+         <div className="bg-grid"></div>
          <div className="ambient-bg">
             <div className="orb orb-1"></div>
             <div className="orb orb-2"></div>
             <div className="snow-container">
-               {snowflakes.map(s=><div key={s.id} className="snowflake" style={{left:s.left, animationDuration:s.dur, animationDelay:s.delay, fontSize:s.size}}>❄</div>)}
+               {snowflakes.map(s=><div key={s.id} className="snowflake" style={{left:s.left, animationDuration:s.dur, animationDelay:s.delay}}>❄</div>)}
             </div>
          </div>
 
          <div className={`scroll-content ${activeTab==='home'?'centered':''}`}>
+            
             {activeTab === 'home' && (
               <div className="fade-in">
                  <div className="mascot-wrap">
+                    <div className="sparkle" style={{top:20, left:40}}></div>
+                    <div className="sparkle" style={{bottom:30, right:50, animationDelay:'1s'}}></div>
                     <div className="neon-circle"></div>
                     <img src="/img/chibi-happy.png" className="mascot-img" />
                  </div>
@@ -199,12 +203,9 @@ function App() {
               <div className="close-lofi" onClick={()=>{setIsLofi(false); setHideUi(false); if(playing) audioRef.current.pause(); setPlaying(false)}}>✕</div>
               <video src="/video/lofi-train.mp4" className="lofi-vid" autoPlay loop muted playsInline />
               
-              {/* КНОПКА ВОЗВРАТА UI */}
               {hideUi && <div className="show-ui-btn" onClick={()=>setHideUi(false)}>{t[lang].showUi}</div>}
 
-              {/* СКРЫВАЕМЫЙ UI */}
               <div className={`lofi-ui ${hideUi ? 'hidden-ui' : ''}`}>
-                 {/* РУЧКА ДЛЯ СКРЫТИЯ */}
                  <div className="slide-handle" onClick={()=>setHideUi(true)}></div>
                  <div className="playlist">
                     {tracks.map((tr, i) => (
