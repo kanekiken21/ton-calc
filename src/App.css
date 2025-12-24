@@ -1,12 +1,10 @@
 :root {
   --primary: #007AFF;
-  --accent: #29C6FF;
-  --glass-body: rgba(18, 25, 40, 0.9); /* Темнее и дороже */
-  --glass-border: rgba(255, 255, 255, 0.12);
-  --nav-bg: rgba(10, 15, 25, 0.95);
+  --glass-body: rgba(13, 18, 30, 0.95); /* Очень темный, почти черный */
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --nav-bg: rgba(8, 12, 20, 0.98);
   --text-white: #ffffff;
   --text-grey: #8e9bb3;
-  /* Пружина "Apple Bounce" */
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
@@ -22,34 +20,52 @@ body {
 
 #root { width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; }
 
-/* ФОН */
-.ambient-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: radial-gradient(circle at 50% 50%, #001225 0%, #000000 100%); }
-.orb { position: absolute; border-radius: 50%; filter: blur(80px); opacity: 0.4; animation: floatOrb 12s infinite ease-in-out; }
-.orb-1 { top: -20%; left: -20%; width: 90vw; height: 90vw; background: #007AFF; }
-.orb-2 { bottom: -20%; right: -20%; width: 80vw; height: 80vw; background: #00C6FF; opacity: 0.3; }
+/* --- 1. ЗАГРУЗОЧНЫЙ ЭКРАН --- */
+.loading-screen {
+  position: fixed; inset: 0; z-index: 9999;
+  background: #000;
+  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  transition: opacity 0.5s ease-out, visibility 0.5s;
+}
+.loading-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+.loader-logo { width: 100px; animation: pulseLogo 1.5s infinite ease-in-out; filter: drop-shadow(0 0 20px #007AFF); }
+.loader-text { margin-top: 20px; font-size: 18px; font-weight: 600; color: #007AFF; letter-spacing: 2px; text-transform: uppercase; }
+@keyframes pulseLogo { 0%,100%{transform:scale(1);opacity:0.8;} 50%{transform:scale(1.1);opacity:1;} }
 
-/* СНЕГ (УЛУЧШЕННЫЙ) */
-.snow-container { position: absolute; inset: 0; pointer-events: none; }
+/* --- 2. ФОН И ДЕКОР --- */
+.ambient-bg { position: fixed; inset: 0; z-index: 0; pointer-events: none; background: #000510; }
+/* Кибер-сетка на фоне */
+.bg-grid {
+  position: absolute; inset: 0; opacity: 0.15;
+  background-image: linear-gradient(rgba(0, 122, 255, 0.3) 1px, transparent 1px),
+  linear-gradient(90deg, rgba(0, 122, 255, 0.3) 1px, transparent 1px);
+  background-size: 40px 40px; mask-image: radial-gradient(circle, black 40%, transparent 80%);
+}
+.orb { position: absolute; border-radius: 50%; filter: blur(100px); opacity: 0.4; animation: floatOrb 15s infinite ease-in-out; }
+.orb-1 { top: -10%; left: -20%; width: 90vw; height: 90vw; background: #007AFF; }
+.orb-2 { bottom: -10%; right: -20%; width: 80vw; height: 80vw; background: #9D00FF; opacity: 0.3; }
+
+/* Снег */
+.snow-container { position: absolute; inset: 0; pointer-events: none; z-index: 1; }
 .snowflake { 
   position: absolute; top: -10px; color: #fff; font-size: 14px; 
-  text-shadow: 0 0 5px white; opacity: 0.7;
-  animation-name: fall; animation-timing-function: linear; animation-iteration-count: infinite;
+  text-shadow: 0 0 4px white; opacity: 0.6;
+  animation: fall linear infinite;
 }
 @keyframes fall { 
-  0% { transform: translateY(-10vh) translateX(0); opacity: 0; } 
-  10% { opacity: 1; }
-  100% { transform: translateY(110vh) translateX(20px); opacity: 0; } 
+  0% { transform: translateY(-10vh); opacity: 0; } 
+  10% { opacity: 1; } 100% { transform: translateY(110vh); opacity: 0; } 
 }
-@keyframes floatOrb { 0%,100% { transform: translate(0,0); } 50% { transform: translate(25px,-25px); } }
+@keyframes floatOrb { 0%,100% { transform: translate(0,0); } 50% { transform: translate(20px,-20px); } }
 
-/* МОБИЛЬНЫЙ ФРЕЙМ */
+/* --- 3. MOBILE FRAME --- */
 .mobile-frame {
   position: relative; z-index: 10;
   width: 100%; max-width: 390px; height: 100%; max-height: 850px;
   background: var(--glass-body);
   border: 1px solid var(--glass-border);
   border-radius: 44px;
-  box-shadow: 0 0 0 1px rgba(0,0,0,0.5), 0 40px 100px rgba(0,0,0,0.9);
+  box-shadow: 0 0 0 2px rgba(0,0,0,0.8), 0 50px 120px rgba(0, 122, 255, 0.15);
   backdrop-filter: blur(40px);
   display: flex; flex-direction: column; overflow: hidden;
 }
@@ -57,11 +73,11 @@ body {
 /* СКРОЛЛ ЗОНА */
 .scroll-content {
   flex: 1; overflow-y: auto; overflow-x: hidden;
-  padding: 20px; padding-bottom: 120px;
+  padding: 20px; padding-bottom: 110px;
   display: flex; flex-direction: column; align-items: center; width: 100%;
 }
-.scroll-content::-webkit-scrollbar { display: none; }
 .scroll-content.centered { justify-content: center; }
+.scroll-content::-webkit-scrollbar { display: none; }
 
 .fade-in { 
   width: 100%; display: flex; flex-direction: column; align-items: center; gap: 15px;
@@ -69,50 +85,53 @@ body {
 }
 @keyframes slideUp { to { opacity: 1; transform: translateY(0); } }
 
+/* --- 4. UI ЭЛЕМЕНТЫ --- */
+
 /* МАСКОТ */
 .mascot-wrap { position: relative; height: 150px; display: flex; justify-content: center; align-items: center; margin-bottom: 10px; }
 .neon-circle {
   position: absolute; width: 120px; height: 120px; border-radius: 50%;
-  background: #007AFF; filter: blur(55px); opacity: 0.6; z-index: 0;
-  animation: pulse 3s infinite ease-in-out;
+  background: #007AFF; filter: blur(60px); opacity: 0.6; z-index: 0;
+  animation: breath 4s infinite;
 }
+.neon-circle.green { background: #32d74b; }
+.neon-circle.red { background: #ff453a; }
 .mascot-img {
   width: 150px; height: auto; z-index: 1; position: relative;
-  filter: drop-shadow(0 15px 30px rgba(0,0,0,0.4));
-  animation: float 5s infinite ease-in-out;
+  filter: drop-shadow(0 10px 20px rgba(0,0,0,0.5));
+  animation: float 6s infinite ease-in-out;
 }
-@keyframes pulse { 0%,100%{transform:scale(1);opacity:0.6;} 50%{transform:scale(1.1);opacity:0.9;} }
+@keyframes breath { 0%,100%{transform:scale(1);opacity:0.5;} 50%{transform:scale(1.1);opacity:0.8;} }
 @keyframes float { 0%,100%{transform:translateY(0);} 50%{transform:translateY(-8px);} }
 
 .h1-title { font-size: 28px; font-weight: 800; margin: 0; color: #fff; text-align: center; }
-.sub-text { font-size: 15px; color: var(--text-grey); text-align: center; margin-bottom: 10px; opacity: 0.8; }
+.sub-text { font-size: 15px; color: var(--text-grey); text-align: center; margin-bottom: 20px; opacity: 0.8; }
 
-/* БАННЕРЫ (КВАДРАТНЫЕ + НЕОН) */
+/* БАННЕРЫ */
 .banners-label { width: 100%; font-size: 13px; font-weight: 700; color: #6e7c91; margin-bottom: 8px; margin-left: 10px; text-transform: uppercase; }
 .banners-row { display: flex; width: 100%; gap: 15px; padding: 0 5px; }
 .banner-card {
   flex: 1; aspect-ratio: 1/1; position: relative;
   border-radius: 26px; overflow: hidden;
-  /* МЯСО: Граница и свечение */
-  border: 1px solid rgba(0, 122, 255, 0.4);
-  box-shadow: 0 0 20px rgba(0, 122, 255, 0.15), inset 0 0 20px rgba(0,0,0,0.5);
+  border: 1px solid rgba(255,255,255,0.15);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   cursor: pointer; transition: transform 0.25s var(--spring);
 }
-.banner-card:active { transform: scale(0.92); }
+.banner-card:active { transform: scale(0.94); }
 .banner-vid { width: 100%; height: 100%; object-fit: cover; }
 .banner-info {
-  position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.95), transparent 60%);
+  position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 70%);
   display: flex; flex-direction: column; justify-content: flex-end; padding: 15px;
 }
-.b-tag { font-size: 10px; font-weight: 800; color: #29C6FF; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px; }
-.b-title { font-size: 16px; font-weight: 800; color: #fff; }
+.b-tag { font-size: 10px; font-weight: 800; color: #29C6FF; text-transform: uppercase; letter-spacing: 1px; }
+.b-title { font-size: 16px; font-weight: 800; color: #fff; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
 
-/* КАЛЬКУЛЯТОР (РОВНЫЙ) */
+/* --- APP (CALC/FLIP) --- */
 .tools-head { width: 100%; display: flex; flex-direction: column; gap: 12px; align-items: center; margin-bottom: 10px; }
 .ton-pill {
   background: rgba(0, 122, 255, 0.15); border: 1px solid rgba(0, 122, 255, 0.3);
   padding: 6px 16px; border-radius: 20px; color: #5AC8FA; font-weight: 700; font-size: 13px;
-  box-shadow: 0 0 15px rgba(0,122,255,0.2);
+  display: flex; gap: 6px; box-shadow: 0 0 20px rgba(0, 122, 255, 0.2);
 }
 .switcher { background: rgba(0,0,0,0.3); border-radius: 16px; padding: 4px; display: flex; width: 100%; }
 .switch-item {
@@ -126,33 +145,31 @@ body {
   padding-right: 5px; margin-bottom: 5px; text-shadow: 0 0 20px rgba(255,255,255,0.15);
   display: flex; align-items: flex-end; justify-content: flex-end; overflow: hidden;
 }
-.keypad-grid { 
-  display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; 
-}
+.keypad-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; width: 100%; }
 .k-btn {
-  height: 55px; border-radius: 16px; font-size: 24px; color: #fff;
+  height: 56px; border-radius: 16px; font-size: 24px; color: #fff;
   display: flex; justify-content: center; align-items: center; cursor: pointer;
   background: rgba(255,255,255,0.04); 
   border-top: 1px solid rgba(255,255,255,0.15); border-bottom: 1px solid rgba(0,0,0,0.2);
   transition: transform 0.15s var(--spring);
 }
-.k-btn:active { transform: scale(0.9); background: rgba(255,255,255,0.1); }
+.k-btn:active { transform: scale(0.92); background: rgba(255,255,255,0.1); }
 .op { background: rgba(0,122,255,0.15); color: #5AC8FA; }
 .ac { color: #FF453A; background: rgba(255,69,58,0.15); }
-.eq { background: linear-gradient(135deg, #007AFF, #0055b3); border:none; box-shadow: 0 0 20px rgba(0,122,255,0.4); }
+.eq { background: linear-gradient(135deg, #007AFF, #0055b3); border:none; box-shadow: 0 0 25px rgba(0,122,255,0.4); }
 .zero { grid-column: span 2; justify-content: flex-start; padding-left: 25px; }
 
-/* FLIP */
+/* FLIP INPUTS */
 .glass-inp {
   width: 100%; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.1);
   border-radius: 16px; padding: 16px; color: #fff; font-size: 18px; text-align: center; outline: none; margin-bottom: 12px;
 }
-.glass-inp:focus { border-color: var(--primary); background: rgba(0,122,255,0.2); }
+.glass-inp:focus { border-color: var(--primary); background: rgba(0,122,255,0.15); }
 .res-box {
   width: 100%; background: rgba(255,255,255,0.05); border-radius: 20px; padding: 20px;
-  text-align: center; border: 1px solid rgba(255,255,255,0.1); margin-top: 10px;
+  text-align: center; border: 1px solid rgba(255,255,255,0.1); margin-top: 5px;
 }
-.res-val { font-size: 34px; font-weight: 800; margin: 10px 0; text-shadow: 0 0 20px rgba(0,122,255,0.5); }
+.res-val { font-size: 34px; font-weight: 800; margin: 5px 0; text-shadow: 0 0 20px rgba(0,122,255,0.5); }
 
 /* SETTINGS */
 .settings-list { width: 100%; display: flex; flex-direction: column; gap: 12px; }
@@ -163,53 +180,56 @@ body {
 }
 .setting-item:active { transform: scale(0.97); }
 
-/* LOFI (RELAX MODE) */
+/* --- LOFI (FIXED) --- */
 .lofi-wrapper {
-  width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 200;
-  background: #000; animation: fadeIn 0.5s;
-  display: flex; flex-direction: column; justify-content: center; align-items: center;
+  position: absolute; inset: 0; z-index: 999; /* Поверх всего */
+  background: #000; animation: fadeIn 0.4s ease-out;
+  display: flex; flex-direction: column;
 }
-@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes fadeIn { from{opacity:0;transform:scale(0.95);} to{opacity:1;transform:scale(1);} }
 
-/* Лоадер для видео */
 .loader-spinner {
-  position: absolute; width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+  width: 40px; height: 40px; border: 4px solid rgba(255,255,255,0.1);
   border-top: 4px solid #007AFF; border-radius: 50%; animation: spin 1s linear infinite; z-index: 10;
 }
-@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+@keyframes spin { 0% { transform: translate(-50%, -50%) rotate(0deg); } 100% { transform: translate(-50%, -50%) rotate(360deg); } }
 
 .lofi-vid { width: 100%; height: 100%; object-fit: cover; opacity: 0.7; z-index: 20; }
 .lofi-ui {
-  position: absolute; bottom: 0; width: 100%; padding: 30px; padding-bottom: 60px;
-  background: linear-gradient(to top, #000 20%, transparent); z-index: 30;
+  position: absolute; bottom: 0; width: 100%; padding: 30px; padding-bottom: 50px;
+  background: linear-gradient(to top, #000 30%, transparent); z-index: 30;
   display: flex; flex-direction: column;
 }
 .playlist {
-  background: rgba(255,255,255,0.1); backdrop-filter: blur(20px);
+  background: rgba(20, 30, 50, 0.6); backdrop-filter: blur(20px);
   border-radius: 24px; padding: 15px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.1);
 }
 .track-item {
   padding: 12px; border-bottom: 1px solid rgba(255,255,255,0.1); font-size: 15px;
-  display: flex; justify-content: space-between; cursor: pointer; opacity: 0.7; transition: 0.2s;
+  display: flex; justify-content: space-between; cursor: pointer; opacity: 0.6; transition: 0.2s;
 }
-.track-item.active { opacity: 1; color: #00C6FF; font-weight: 700; text-shadow: 0 0 10px rgba(0,198,255,0.5); }
+.track-item:last-child { border-bottom: none; }
+.track-item.active { opacity: 1; color: #00C6FF; font-weight: 700; text-shadow: 0 0 10px rgba(0,198,255,0.4); }
 .lofi-controls { display: flex; justify-content: center; align-items: center; gap: 30px; }
 .play-btn {
-  width: 75px; height: 75px; background: #fff; border-radius: 50%; color: #000;
-  display: flex; justify-content: center; align-items: center; font-size: 32px; cursor: pointer;
+  width: 70px; height: 70px; background: #fff; border-radius: 50%; color: #000;
+  display: flex; justify-content: center; align-items: center; font-size: 30px; cursor: pointer;
   box-shadow: 0 0 40px rgba(255,255,255,0.3); transition: 0.2s var(--spring);
 }
 .play-btn:active { transform: scale(0.9); }
 
-/* КНОПКА ВЫХОДА (КРУПНАЯ) */
+/* КНОПКА ВЫХОДА */
 .close-lofi {
-  position: absolute; top: 40px; right: 20px; width: 45px; height: 45px; border-radius: 50%;
-  background: rgba(255, 69, 58, 0.8); color: #fff; display: flex; justify-content: center; align-items: center;
-  border: 1px solid rgba(255,255,255,0.2); cursor: pointer; z-index: 1000; /* ВЫСОКИЙ Z-INDEX */
-  font-weight: bold; font-size: 18px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+  position: absolute; top: 50px; right: 20px; width: 44px; height: 44px; border-radius: 50%;
+  background: rgba(255, 69, 58, 0.9); color: #fff; display: flex; justify-content: center; align-items: center;
+  border: 1px solid rgba(255,255,255,0.3); cursor: pointer; z-index: 1000;
+  font-weight: bold; font-size: 18px; box-shadow: 0 5px 20px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
 }
+.close-lofi:active { transform: scale(0.9); }
 
-/* NAV */
+/* --- NAV BAR --- */
 .nav-bar {
   position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
   width: 320px; height: 75px;
@@ -221,20 +241,22 @@ body {
 }
 .nav-btn {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
-  color: #5c6a85; font-size: 10px; font-weight: 700; cursor: pointer; width: 50px;
-  transition: 0.3s var(--spring);
+  color: #5c6a85; cursor: pointer; width: 50px; transition: 0.3s var(--spring);
+}
+.nav-btn svg { width: 28px; height: 28px; transition: 0.3s; fill: none; stroke: currentColor; stroke-width: 2; }
+/* ИСПРАВЛЕННЫЙ НЕОН ИКОНОК */
+.nav-btn.active { color: #fff; }
+.nav-btn.active svg { 
+  stroke: #00C6FF; fill: rgba(0, 198, 255, 0.15); /* Легкая заливка */
+  filter: drop-shadow(0 0 10px #00C6FF); transform: translateY(-4px); 
 }
 .nav-btn:active { transform: scale(0.85); }
-.nav-btn svg { width: 28px; height: 28px; margin-bottom: 4px; transition: 0.3s; fill: none; stroke: currentColor; stroke-width: 2; }
-/* АКТИВНАЯ ИКОНКА - ЗАЛИТАЯ */
-.nav-btn.active { color: #fff; }
-.nav-btn.active svg { stroke: none; fill: #00C6FF; filter: drop-shadow(0 0 12px #00C6FF); transform: translateY(-4px); }
 
 .nav-center { position: relative; top: -30px; }
 .home-btn {
   width: 64px; height: 64px; background: linear-gradient(135deg, #007AFF, #00C6FF);
   border-radius: 50%; display: flex; align-items: center; justify-content: center;
-  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.5); border: 6px solid #0b121e;
+  box-shadow: 0 10px 30px rgba(0, 122, 255, 0.5); border: 6px solid #000c1a;
   transition: 0.3s var(--spring);
 }
 .home-btn:active { transform: scale(0.85); }
